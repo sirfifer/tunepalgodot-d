@@ -1,60 +1,177 @@
 extends VBoxContainer
 
-@onready var stuff = get_node("../../../../RecordMenu/Control").get("db").query_result
-@onready var current_tune_type = ["all"]
-@onready var buttons = get_children()
-@onready var labels = []
-func _on_search_bar_text_submitted(new_text):
+var stuff = null
+var current_tune_type = ["all"]
+var buttons = []
+var labels = []
+var data_loaded = false
+var record_control = null
+
+func _ready():
+	buttons = get_children()
+	# Initialize labels array
 	for button in buttons:
 		labels.append(button.get_children())
 		button.visible = false
-	for label in labels:
-		label[0].visible = false
+	# Defer data loading to ensure RecordMenu is ready
+	call_deferred("_load_initial_data")
+
+func _load_initial_data():
+	# Wait a moment for the database to load
+	await get_tree().create_timer(0.6).timeout
+	_refresh_data()
+	if stuff != null and stuff.size() > 0:
+		data_loaded = true
+		_show_initial_tunes()
+
+func _refresh_data():
+	# Get fresh reference to the query result
+	record_control = get_node_or_null("../../../../RecordMenu/Control")
+	if record_control:
+		stuff = record_control.get("query_result")
+		if stuff == null:
+			var db = record_control.get("db")
+			if db:
+				stuff = db.query_result
+
+func _show_initial_tunes():
+	# Show first 50 tunes alphabetically when no search is active
+	if stuff == null or stuff.size() == 0:
+		return
+
+	# Hide all buttons first
+	for i in range(buttons.size()):
+		buttons[i].visible = false
+		if labels[i].size() > 0:
+			labels[i][0].visible = false
+
+	# Show first 50 tunes
+	var count = 0
+	for i in range(stuff.size()):
+		if count >= 50 or count >= buttons.size():
+			break
+
+		# Apply time signature filter
+		if current_tune_type != ["all"]:
+			var matches_filter = false
+			for time_sig in current_tune_type:
+				if stuff[i]["time_sig"] == time_sig:
+					matches_filter = true
+					break
+			if not matches_filter:
+				continue
+
+		var button = buttons[count]
+		button.set_text("  " + str(stuff[i]["title"]))
+
+		var info_string = ""
+		if stuff[i]["shortName"] != null:
+			info_string = str(stuff[i]["shortName"])
+		if stuff[i]["tune_type"] != null:
+			info_string = info_string + " | " + str(stuff[i]["tune_type"])
+		if stuff[i]["key_sig"] != null:
+			info_string = info_string + " | " + str(stuff[i]["key_sig"])
+
+		if labels[count].size() > 0:
+			labels[count][0].set_text(info_string)
+			labels[count][0].visible = true
+
+		button.visible = true
+		count += 1
+
+func _on_search_bar_text_submitted(new_text):
+	# If empty search, show initial tunes
+	if new_text.strip_edges() == "":
+		_show_initial_tunes()
+		return
+
+	# Ensure data is loaded
+	if stuff == null or stuff.size() == 0:
+		_refresh_data()
+		if stuff == null or stuff.size() == 0:
+			return
+
+	# Hide all buttons first
+	for i in range(buttons.size()):
+		buttons[i].visible = false
+		if i < labels.size() and labels[i].size() > 0:
+			labels[i][0].visible = false
+
 	var regex = RegEx.new()
 	regex.compile("\\b\\w+\\b")
 	var strings = regex.search_all(new_text)
-	var matches = []
+	var search_terms = []
 	for i in strings:
-		matches.append(i.get_string().to_lower())
+		search_terms.append(i.get_string().to_lower())
+
 	var j = 0
 	for i in range(0, stuff.size()):
+		if j >= buttons.size():
+			break
+
 		var button = buttons[j]
-		var label = labels[j]
 		var check = false
-		for string in matches:
+
+		for term in search_terms:
 			if current_tune_type != ["all"]:
 				for time_sig in current_tune_type:
-					if stuff[i]["title"].to_lower().contains(string) and time_sig == stuff[i]["time_sig"]: 
+					if stuff[i]["title"].to_lower().contains(term) and time_sig == stuff[i]["time_sig"]:
 						check = true
-			elif stuff[i]["title"].to_lower().contains(string):
+						break
+			elif stuff[i]["title"].to_lower().contains(term):
 				check = true
+				break
+
 		if check:
-			button.set_text("  " + stuff[i]["title"])
-			var string = ""
+			button.set_text("  " + str(stuff[i]["title"]))
+			var info_string = ""
 			if stuff[i]["shortName"] != null:
-				string = string + stuff[i]["shortName"]
+				info_string = str(stuff[i]["shortName"])
 			if stuff[i]["tune_type"] != null:
-				string = string + " | " + stuff[i]["tune_type"]
+				info_string = info_string + " | " + str(stuff[i]["tune_type"])
 			if stuff[i]["key_sig"] != null:
-				string = string + " | " + stuff[i]["key_sig"]
-			label[0].set_text(string)
-			#print(label[0].text)
+				info_string = info_string + " | " + str(stuff[i]["key_sig"])
+
+			if j < labels.size() and labels[j].size() > 0:
+				labels[j][0].set_text(info_string)
+				labels[j][0].visible = true
+
 			button.visible = true
-			label[0].visible = true
 			j += 1
+
 		if j == 50:
 			break
 func _on_all_toggled(button_pressed):
 	current_tune_type = ["all"]
+	if button_pressed and data_loaded:
+		_show_initial_tunes()
+
 func _on_reels_hornpipes_toggled(button_pressed):
 	current_tune_type = ["C", "C|", "4/4", "2/2", "4/2"]
+	if button_pressed and data_loaded:
+		_show_initial_tunes()
+
 func _on_jigs_slides_etc_toggled(button_pressed):
 	current_tune_type = ["12/8", "6/8"]
+	if button_pressed and data_loaded:
+		_show_initial_tunes()
+
 func _on_slip_jigs_hop_jigs_toggled(button_pressed):
 	current_tune_type = ["9/8"]
+	if button_pressed and data_loaded:
+		_show_initial_tunes()
+
 func _on_waltzes_mazurkas_toggled(button_pressed):
 	current_tune_type = ["3/4"]
+	if button_pressed and data_loaded:
+		_show_initial_tunes()
+
 func _on_unsusual_jigs_toggled(button_pressed):
 	current_tune_type = ["3/8"]
+	if button_pressed and data_loaded:
+		_show_initial_tunes()
+
 func _on_unusual_english_hornpipes_toggled(button_pressed):
 	current_tune_type = ["3/2", "6/4"]
+	if button_pressed and data_loaded:
+		_show_initial_tunes()
