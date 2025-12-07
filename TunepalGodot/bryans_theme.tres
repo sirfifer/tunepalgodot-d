@@ -1,6 +1,7 @@
-[gd_resource type="Theme" load_steps=7 format=3 uid="uid://b1kmk3bditaib"]
+[gd_resource type="Theme" load_steps=6 format=3 uid="uid://b1kmk3bditaib"]
 
-[ext_resource type="FontFile" uid="uid://c0wrlbqw5fbjo" path="res://fonts/Hyperspace Bold.otf" id="1_0oi7c"]
+# Using Godot's default font for clean rendering on all platforms
+# Removed Hyperspace Bold which rendered poorly on high-DPI mobile displays
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h4d3n"]
 content_margin_left = 4.0
@@ -72,8 +73,7 @@ corner_radius_bottom_left = 3
 corner_detail = 5
 
 [resource]
-default_font = ExtResource("1_0oi7c")
-default_font_size = 24
+default_font_size = 28
 Button/colors/font_color = Color(0.875, 0.875, 0.875, 1)
 Button/colors/font_disabled_color = Color(0.875, 0.875, 0.875, 0.5)
 Button/colors/font_focus_color = Color(0.95, 0.95, 0.95, 1)

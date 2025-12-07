@@ -28,8 +28,9 @@ As a traditional musician myself, I want to express my deep gratitude to Bryan f
 - **Upstream Repository**: [github.com/skooter500/TunepalGodot](https://github.com/skooter500/TunepalGodot)
 - **Original Tunepal**: [tunepal.org](https://tunepal.org) | [App Store](https://apps.apple.com/ie/app/tunepal/id356935033)
 - **The Session Discussion**: [Tunepal on The Session](https://thesession.org/discussions/49580)
+- **Project Roadmap**: [ROADMAP.md](ROADMAP.md) - Development priorities and vision
 
---- 
+---
 
 This goal of this project is to create a new, modern Tunepal that solves a number of problems with the original, while providing a platform for future development and research.
 
