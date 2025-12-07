@@ -1,0 +1,72 @@
+# Labels for Tunepal issue tracking
+# Apply these labels to your repository using: gh label create or manually in GitHub UI
+
+# Issue Types
+- name: bug
+  color: d73a4a
+  description: Something isn't working
+
+- name: enhancement
+  color: a2eeef
+  description: New feature or improvement
+
+- name: documentation
+  color: 0075ca
+  description: Improvements or additions to documentation
+
+- name: question
+  color: d876e3
+  description: Further information is requested
+
+# Roadmap Status
+- name: roadmap
+  color: 5319e7
+  description: Tracked on the project roadmap
+
+# Priority Levels
+- name: "priority: high"
+  color: b60205
+  description: Critical path - blocks other work
+
+- name: "priority: medium"
+  color: fbca04
+  description: Important but not blocking
+
+- name: "priority: low"
+  color: c5def5
+  description: Nice to have
+
+# Feature Areas
+- name: "area: search"
+  color: 1d76db
+  description: Search and tune matching
+
+- name: "area: audio"
+  color: 1d76db
+  description: Audio recording and playback
+
+- name: "area: ui"
+  color: 1d76db
+  description: User interface
+
+- name: "area: platform"
+  color: 1d76db
+  description: Platform-specific (iOS, Android, etc.)
+
+- name: "area: database"
+  color: 1d76db
+  description: SQLite and tune data
+
+# Contributor Labels
+- name: good first issue
+  color: 7057ff
+  description: Good for newcomers
+
+- name: help wanted
+  color: 008672
+  description: Extra attention is needed
+
+# Upstream
+- name: upstream-candidate
+  color: 0e8a16
+  description: Consider contributing to upstream repo

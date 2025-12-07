@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Tunepal Roadmap
+    url: https://github.com/sirfifer/tunepalgodot-d/blob/main/ROADMAP.md
+    about: View the project roadmap and priorities
+  - name: Upstream Repository
+    url: https://github.com/skooter500/TunepalGodot
+    about: Bryan Duggan's original Tunepal Godot repository
+  - name: Bryan's Blog
+    url: https://bryanduggan.org/tag/tunepal/
+    about: Background and context from the original author
