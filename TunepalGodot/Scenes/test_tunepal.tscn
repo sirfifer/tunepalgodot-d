@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://test_tunepal"]
+
+[ext_resource type="Script" path="res://Scripts/test_tunepal.gd" id="1_test"]
+
+[node name="TestTunepal" type="Node"]
+script = ExtResource("1_test")

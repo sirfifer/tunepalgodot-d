@@ -6,7 +6,18 @@
 # Godot-specific ignores
 .import/
 export.cfg
-export_presets.cfg
+# Note: export_presets.cfg is included as a template (no sensitive data)
+
+# SCons build artifacts
+.sconsign.dblite
+*.os
+*.o
+godot-cpp/bin/
+godot-cpp/gen/
+
+# IDE
+.vscode/
+*.code-workspace
 
 # Imported translations (automatically generated from CSV files)
 *.translation
