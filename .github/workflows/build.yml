@@ -1,4 +1,4 @@
-name: Build Tunepal Extension
+name: Build and Test Tunepal Extension
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
 
 env:
   SCONS_CACHE: ${{ github.workspace }}/.scons-cache/
+  GODOT_VERSION: "4.3-stable"
 
 jobs:
   build:
@@ -95,10 +96,50 @@ jobs:
           path: TunepalGodot/addons/tunepal/bin/
           if-no-files-found: error
 
+  # Run tests using Godot headless
+  test:
+    name: Run Tests
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download Linux build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tunepal-linux-x86_64
+          path: TunepalGodot/addons/tunepal/bin/
+
+      - name: Download and setup Godot
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64.zip
+          unzip -q Godot_v${{ env.GODOT_VERSION }}_linux.x86_64.zip
+          chmod +x Godot_v${{ env.GODOT_VERSION }}_linux.x86_64
+          sudo mv Godot_v${{ env.GODOT_VERSION }}_linux.x86_64 /usr/local/bin/godot
+
+      - name: Import project (generate .godot folder)
+        run: |
+          cd TunepalGodot
+          timeout 30 godot --headless --import || true
+
+      - name: Run tests
+        run: |
+          cd TunepalGodot
+          godot --headless --script Scripts/test_tunepal.gd --quit 2>&1 | tee test_output.txt
+          # Check for test failures
+          if grep -q "SOME TESTS FAILED" test_output.txt; then
+            echo "Tests failed!"
+            exit 1
+          fi
+          echo "All tests passed!"
+
   # Combine all platform binaries into single artifact
   package:
     name: Package All Platforms
-    needs: build
+    needs: [build, test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
