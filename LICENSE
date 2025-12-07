@@ -2,6 +2,19 @@ MIT License
 
 Copyright (c) 2024 Bryan Duggan and Contributors
 
+---
+
+NOTE: This license is provided to formalize Dr. Bryan Duggan's stated intent
+that Tunepal Nua be "free and open-source" (see his blog announcement at
+https://bryanduggan.org/2024/04/01/new-tunepal-using-godot/). The MIT License
+was chosen as it aligns with the permissive licensing of the project's
+dependencies (godot-cpp, godot-sqlite, godot-midi).
+
+If Bryan specifies a different license for the upstream repository, this
+file should be updated to match his choice.
+
+---
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
