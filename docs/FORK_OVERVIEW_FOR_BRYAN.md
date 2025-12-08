@@ -102,6 +102,10 @@ Despite the AI involvement, I believe the work stands on its own merits:
 
 But I wanted you to have the full picture before deciding whether this collaboration makes sense for you.
 
+### A Thought on AI as a Feature
+
+I have no current plan to add AI as a feature within Tunepal itself - I won't force AI into the product without a compelling use case. That said, if a genuinely valuable application emerged (and I don't have one in mind today), I'd be enthusiastic about exploring it. This would align with my broader learning goals and could potentially benefit the project. Just putting it on the table as something to think about, not a proposal.
+
 ---
 
 ## Summary of Work Done
