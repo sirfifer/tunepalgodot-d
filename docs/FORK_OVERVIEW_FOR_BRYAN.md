@@ -336,6 +336,26 @@ I'm open to whatever works best for you and the project.
 
 ---
 
+## My Current Approach (Until We Connect)
+
+I understand you may be traveling or otherwise occupied. Here's my plan while I await your response:
+
+**Short-term:** Keep working toward an iOS MVP at or near feature parity with the original iPhone app. This gives me a concrete goal and generates potentially useful work.
+
+**After MVP:** Reach out locally to a few musicians I know in Vancouver, Washington (there's a thriving session here) for informal testing and feedback - people who've used Tunepal and can give direct input.
+
+**What I'm deliberately NOT doing:** Engaging the broader internet community, posting on forums, or reaching out publicly about this work. I don't want to create confusion or step on toes before we've had a chance to connect. The wider conversation can wait until we've talked.
+
+---
+
+## Acknowledging the Full Team
+
+I'll be honest: I initially assumed you had done nearly everything yourself (aside from the Android port). Reading the attribution in the original app, I now realize there's a whole team of contributors who've shaped Tunepal over the years.
+
+I want to be clear: I'm not trying to barrel in and take over. If there are other active contributors who own pieces of this and want to continue owning them, I want to engage appropriately. My goal is to collaborate, learn, and help - not to displace anyone who's been part of making Tunepal what it is.
+
+---
+
 ## How to Reach Me
 
 I'd be honored to discuss any of this with you. Whether it's a quick email, a video call, or meeting at a session somewhere - whatever works for you.
