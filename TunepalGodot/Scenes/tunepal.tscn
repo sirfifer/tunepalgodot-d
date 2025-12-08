@@ -35,19 +35,23 @@ metadata/_edit_horizontal_guides_ = [-155.0]
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme = ExtResource("18_nq3ph")
 script = ExtResource("1_wce83")
 
 [node name="Menus" type="Control" parent="Control"]
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="RecordMenu" type="Node2D" parent="Control/Menus"]
-visible = false
+visible = true
 
 [node name="Control" type="Control" parent="Control/Menus/RecordMenu"]
 layout_mode = 3

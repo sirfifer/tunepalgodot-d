@@ -1,178 +1,227 @@
-# iOS Simulator Development Workflow
+# iOS Development & Testing Workflow
 
-This document outlines how to set up an efficient iOS development workflow for Tunepal using the iOS Simulator, including known issues and solutions.
-
-## Known Issues
-
-### SQLite in iOS Simulator
-
-**Problem:** The godot-sqlite addon provides `ios.arm64` binaries, but these are compiled for **iOS devices**, not the **iOS Simulator**. The simulator uses different architectures:
-- Apple Silicon Macs: `arm64-simulator` (different SDK than device arm64)
-- Intel Macs: `x86_64-simulator`
-
-**Symptoms:**
-- App crashes on launch in Simulator
-- SQLite operations fail silently
-- Database queries return empty/null
-
-**Current Workaround Options:**
-
-1. **Test on Physical Device via TestFlight**
-   - This bypasses the Simulator architecture issue entirely
-   - The arm64 iOS binaries work on real devices
-
-2. **Build godot-sqlite for Simulator** (Advanced)
-   - Clone [godot-sqlite](https://github.com/2shady4u/godot-sqlite)
-   - Build with simulator SDK: `xcrun -sdk iphonesimulator clang...`
-   - Add simulator entries to `gdsqlite.gdextension`
-
-3. **Use macOS Build for Development**
-   - The macOS binary works on Apple Silicon
-   - Use `godot --path TunepalGodot` to run directly
-   - Faster iteration than Simulator
-
-### Database Path for iOS
-
-The app already handles iOS file system restrictions correctly in `record.gd`:
-
-```gdscript
-if OS.get_name() in ["Android", "iOS", "Web"]:
-    copy_data_to_user()
-    db_name = "user://data/tunepal"
-```
-
-This copies the database from `res://` (read-only) to `user://` (writable) on mobile platforms.
+This document covers testing Tunepal on iOS - both in the Simulator and on physical devices.
 
 ---
 
-## MCP Server for iOS Simulator Automation
+## Quick Start
+
+### Test in iOS Simulator (One Command)
+
+```bash
+# Launch existing build
+./scripts/test-ios-simulator.sh
+
+# Full rebuild and launch
+./scripts/test-ios-simulator.sh --rebuild
+
+# Use a different simulator
+./scripts/test-ios-simulator.sh --simulator "iPad Pro 13-inch"
+```
+
+### Test on Physical Device
+
+```bash
+# Build and deploy via Xcode
+open export/tunepal-ios.xcodeproj
+# Select your device, then Cmd+R to run
+```
+
+---
+
+## iOS Simulator Setup
+
+### Prerequisites
+
+| Tool | Required Version | Check Command |
+|------|------------------|---------------|
+| Xcode | 15+ | `xcodebuild -version` |
+| Godot | 4.5.1+ | `godot --version` |
+| iOS Simulator | iOS 14+ | Open Xcode > Window > Devices |
+
+### First-Time Setup
+
+1. **Install iOS Simulator** (if not present):
+   ```bash
+   xcodebuild -downloadPlatform iOS
+   ```
+
+2. **Verify Godot iOS export templates**:
+   ```bash
+   ls ~/Library/Application\ Support/Godot/export_templates/4.5.1.stable/ios.zip
+   ```
+
+3. **Initial build** (required before first test):
+   ```bash
+   ./scripts/test-ios-simulator.sh --rebuild
+   ```
+
+---
+
+## SQLite Support
+
+### Status: RESOLVED
+
+SQLite now works in the iOS Simulator. The solution involved:
+
+1. Building custom Godot iOS templates with arm64 simulator support
+2. Building godot-sqlite with merged godot-cpp symbols as xcframeworks
+3. Using `libtool -static` to properly merge static libraries
+
+### Technical Details
+
+The godot-sqlite xcframeworks are located at:
+- `TunepalGodot/addons/godot-sqlite/bin/libgdsqlite.ios.template_debug.xcframework`
+- `TunepalGodot/addons/godot-sqlite/bin/libgdsqlite.ios.template_release.xcframework`
+
+Each xcframework contains:
+- **Device slice**: arm64
+- **Simulator slice**: arm64 + x86_64 (fat binary)
+
+To verify SQLite is working:
+1. Launch app in Simulator
+2. Navigate to Keywords view
+3. Tune data should load (this proves database queries work)
+
+---
+
+## Workflow Details
+
+### Development Iteration
+
+| Task | Command | Time |
+|------|---------|------|
+| Quick UI test | `./scripts/test-ios-simulator.sh` | ~5 sec |
+| After code changes | `./scripts/test-ios-simulator.sh --rebuild` | ~2 min |
+| Test on device | Open Xcode, Cmd+R | ~3 min |
+
+### When to Rebuild
+
+Use `--rebuild` when you've changed:
+- Any GDScript files
+- Scene files (.tscn)
+- Resources
+- Project settings
+
+No rebuild needed for:
+- Just re-testing the same build
+- Switching simulators
+
+---
+
+## Physical Device Testing
+
+### Via Xcode
+
+1. Connect your iOS device via USB
+2. Open the Xcode project:
+   ```bash
+   open export/tunepal-ios.xcodeproj
+   ```
+3. Select your device in the scheme dropdown
+4. Press Cmd+R to build and run
+
+### Via TestFlight
+
+For broader testing:
+1. Archive in Xcode (Product > Archive)
+2. Upload to App Store Connect
+3. Distribute via TestFlight
+
+---
+
+## Troubleshooting
+
+### App won't launch in Simulator
+
+```bash
+# Check if simulator is running
+xcrun simctl list devices booted
+
+# Boot simulator manually
+xcrun simctl boot "iPhone 17 Pro"
+
+# Check if app is installed
+xcrun simctl listapps booted | grep tunepal
+```
+
+### Build fails with undefined symbols
+
+This usually means the xcframeworks need rebuilding. The fix:
+```bash
+# Full rebuild of godot-sqlite xcframeworks
+# (Contact maintainer - this is a one-time setup)
+```
+
+### Simulator shows black screen
+
+```bash
+# Terminate and relaunch
+xcrun simctl terminate booted org.tunepal.app
+xcrun simctl launch booted org.tunepal.app
+```
+
+### Database queries return empty
+
+Check that:
+1. The database file exists: `user://data/tunepal.db`
+2. SQLite library is loaded (check Xcode console for errors)
+3. Keywords view attempts to load data
+
+---
+
+## Architecture Reference
+
+### Build Artifacts
+
+| File | Purpose |
+|------|---------|
+| `export/tunepal-ios.xcodeproj` | Xcode project (regenerated on export) |
+| `export/tunepal-ios.pck` | Game data package |
+| `export/tunepal-ios.xcframework` | Godot engine library |
+| `TunepalGodot/addons/godot-sqlite/bin/*.xcframework` | SQLite extension |
+
+### Platform Detection
+
+```bash
+# Check if library is for simulator (platform 7) or device (platform 2)
+otool -l <library.a> | grep -A5 "LC_BUILD_VERSION"
+```
+
+### Architecture Verification
+
+```bash
+# Check architectures in fat binary
+lipo -info <library.a>
+# Expected for simulator: "x86_64 arm64"
+```
+
+---
+
+## Advanced: Claude Code Integration
 
 ### ios-simulator-mcp
 
-An MCP server that allows Claude to interact directly with the iOS Simulator for UI testing and screenshots.
-
-**Installation:**
+For automated UI testing via Claude Code:
 
 ```bash
-# Install Facebook IDB (required dependency)
+# Install IDB
 brew install idb-companion
 
-# For Claude Code, add to your MCP configuration
+# Add MCP server
 claude mcp add ios-simulator --command npx --args ios-simulator-mcp
 ```
 
-**Or manually configure** in `~/.config/claude-code/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "ios-simulator": {
-      "command": "npx",
-      "args": ["-y", "ios-simulator-mcp"]
-    }
-  }
-}
-```
-
-**Available Tools:**
-- `screenshot` - Capture current screen
-- `ui_tap` - Simulate tap at coordinates
+Available tools:
+- `screenshot` - Capture screen
+- `ui_tap` - Tap at coordinates
 - `ui_type` - Input text
-- `ui_swipe` - Perform swipe gestures
-- `ui_describe_all` - Get accessibility tree
-- `ui_describe_point` - Inspect element at point
 - `launch_app` - Launch installed app
-- `install_app` - Install .app bundle
-- `record_video` / `stop_recording` - Video capture
-
-**Requirements:**
-- macOS with Xcode
-- iOS Simulator installed
-- Facebook IDB tool (`brew install idb-companion`)
-- Node.js
-
-**Usage Example:**
-Once configured, Claude can:
-- "Take a screenshot of the simulator"
-- "Tap on the Keywords button"
-- "Describe what's on screen"
-
----
-
-## Claude Code + IDE Integration
-
-### VS Code Extension
-
-Claude Code has a VS Code extension that provides:
-- Real-time diff viewing
-- File reference shortcuts (Cmd+Option+K)
-- Automatic diagnostic sharing
-- Direct integration with terminal Claude Code
-
-**Installation:**
-The extension auto-installs when running Claude Code with VS Code open.
-
-### Cursor IDE
-
-Cursor is VS Code-based and supports the extension with a manual workaround:
-
-```bash
-cursor --install-extension ~/.claude/local/node_modules/@anthropic-ai/claude-code/vendor/claude-code.vsix
-```
-
-### Benefits for UI Development
-- See changes in real-time through native GUI
-- Access lint/syntax errors automatically
-- Navigate code with file references
-- Works alongside Cursor's native AI features
-
----
-
-## Recommended Development Workflow
-
-### For UI Iteration (Current Best Path)
-
-1. **Make changes** in VS Code/Cursor with Claude Code
-2. **Test on macOS** using Godot editor (fast iteration)
-   ```bash
-   cd TunepalGodot
-   godot
-   ```
-3. **Build for iOS** when ready to test mobile-specific features
-   ```bash
-   scons platform=ios target=template_debug arch=arm64
-   ```
-4. **Test on real device** via TestFlight (bypasses Simulator SQLite issue)
-
-### For Automated UI Testing (Future)
-
-1. **Configure ios-simulator-mcp** as described above
-2. **Build and install** app in Simulator (with SQLite fix applied)
-3. **Use Claude Code** to:
-   - Take screenshots for review
-   - Automate UI interactions
-   - Verify accessibility labels
-   - Record bug reproduction videos
-
----
-
-## Future Improvements
-
-### Short-term
-- [ ] Build godot-sqlite for iOS Simulator targets
-- [ ] Set up ios-simulator-mcp for automated testing
-- [ ] Create UI test suite using MCP tools
-
-### Long-term
-- [ ] CI/CD pipeline for Simulator testing
-- [ ] Automated screenshot comparison
-- [ ] Accessibility audit automation
 
 ---
 
 ## References
 
 - [godot-sqlite](https://github.com/2shady4u/godot-sqlite) - SQLite GDExtension
-- [ios-simulator-mcp](https://github.com/joshuayoes/ios-simulator-mcp) - MCP Server for iOS Simulator
-- [Claude Code IDE Integrations](https://docs.anthropic.com/en/docs/claude-code/ide-integrations) - Official docs
-- [XcodeBuildMCP](https://github.com/cameroncooke/XcodeBuildMCP) - Xcode automation via MCP
+- [godot-ios-plugins](https://github.com/godot-sdk-integrations/godot-ios-plugins) - iOS plugin build reference
+- [Godot iOS Export](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_ios.html) - Official docs
