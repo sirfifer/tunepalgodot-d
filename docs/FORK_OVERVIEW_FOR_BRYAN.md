@@ -37,6 +37,18 @@ Whatever serves the project and the community best - I'm completely flexible.
 
 ---
 
+## Who I Am
+
+I've been a musician my whole life, but Irish traditional music found me around 1989 and never let go. My most intense involvement was during the 1990s when I lived in Seattle, Washington - I was playing music and involved in set and step dancing pretty much six nights a week. Sessions, ceilis, festivals, the whole community. I've never quite matched that level of intensity since, but I've stayed connected to the tradition ever since, and I still aspire to do more.
+
+My primary instrument is the Irish flute, though I also play tin whistle (of course), bodhrán, bones, and I mess around on keyboard when no one's listening.
+
+There's an interesting wrinkle to my story right now: I'm in the process of reinventing my career. I've always been in tech, but I'm going all-in on AI. Many of the companies I'm most interested in - and the jobs I'm actively pursuing - are in Dublin. Others are elsewhere in Europe. If things go the way I hope, I'll be Ireland-adjacent within the next year.
+
+So when I say I care about this project, it's not abstract. Tunepal has been part of my musical life. Traditional Irish music is part of who I am. And if I'm lucky enough to land in Ireland, I'll be back at sessions regularly, with Tunepal on my phone (or watch, if we build that feature).
+
+---
+
 ## Summary of Work Done
 
 Here's a concise overview of what's been added to this fork since departing from your repository. All of this is available for you to review, cherry-pick, or adopt wholesale.
