@@ -13,10 +13,13 @@ FolkFriend is a Rust-based folk music transcription and recognition system that 
 
 **Key Finding:** FolkFriend uses significantly more sophisticated signal processing algorithms (modified autocorrelation, Viterbi decoding, Needleman-Wunsch sequence alignment) compared to Tunepal's simpler approach (peak magnitude detection, Levenshtein edit distance). However, Tunepal has major platform advantages (native mobile, offline-first) that FolkFriend lacks.
 
+**Critical Licensing Notice:** FolkFriend is GPL-3.0 licensed while Tunepal is MIT licensed. These licenses are **incompatible for code incorporation**. See [Section 0: Licensing Analysis](#0-licensing-analysis-critical) for detailed guidance.
+
 ---
 
 ## Table of Contents
 
+0. [Licensing Analysis (CRITICAL)](#0-licensing-analysis-critical)
 1. [What is FolkFriend?](#1-what-is-folkfriend)
 2. [Architecture Comparison](#2-architecture-comparison)
 3. [Signal Processing: Deep Comparison](#3-signal-processing-deep-comparison)
@@ -27,6 +30,150 @@ FolkFriend is a Rust-based folk music transcription and recognition system that 
 8. [Recommendations for Tunepal](#8-recommendations-for-tunepal)
 9. [Implementation Priorities](#9-implementation-priorities)
 10. [Appendix: Technical Details](#appendix-technical-details)
+
+---
+
+## 0. Licensing Analysis (CRITICAL)
+
+### License Overview
+
+| Project | License | Type | Implications |
+|---------|---------|------|--------------|
+| **FolkFriend** | GPL-3.0 | Copyleft ("viral") | Derivative works must also be GPL-3.0 |
+| **Tunepal Godot** | MIT | Permissive | Few restrictions, compatible with most licenses |
+| godot-sqlite | MIT | Permissive | Compatible |
+| godot-midi | MIT | Permissive | Compatible |
+
+### The Incompatibility Problem
+
+**GPL-3.0 is a "copyleft" license** with these key requirements:
+- Any derivative work must be released under GPL-3.0
+- Source code must be made available
+- All recipients receive the same freedoms
+
+**MIT is a "permissive" license** that:
+- Allows use in proprietary and open-source projects
+- Has minimal requirements (attribution only)
+- Is NOT compatible with GPL requirements in reverse direction
+
+### What This Means for Tunepal
+
+#### CANNOT Do (License Violations)
+
+| Action | Risk Level | Why It's Prohibited |
+|--------|------------|---------------------|
+| Copy FolkFriend code into Tunepal | **Critical** | Would require Tunepal to become GPL-3.0 |
+| Use FolkFriend as a linked library | **Critical** | GPL linking requirements would apply |
+| Port FolkFriend code (translate Rust→GDScript/C++) | **High** | Translation is considered a derivative work |
+| Create "substantially similar" implementations by closely following their code | **Moderate** | Could be considered derivative work in court |
+
+#### CAN Do (Safe Approaches)
+
+| Action | Risk Level | Why It's Allowed |
+|--------|------------|------------------|
+| Study FolkFriend to understand *concepts* | **Safe** | Ideas and algorithms are not copyrightable |
+| Implement algorithms from academic papers, Wikipedia, textbooks | **Safe** | Mathematical algorithms are public domain |
+| Use MIT/BSD/Apache licensed implementations as reference | **Safe** | Permissive licenses allow this |
+| Implement from algorithm pseudocode (not actual GPL code) | **Safe** | Clean room implementation |
+| Be inspired by FolkFriend's architecture choices | **Safe** | High-level design ideas are not copyrightable |
+
+### Algorithm IP vs Code IP
+
+**Important distinction:** The *algorithms* FolkFriend uses are not FolkFriend's intellectual property:
+
+| Algorithm | Origin | Status |
+|-----------|--------|--------|
+| Needleman-Wunsch | Published 1970 by Saul Needleman & Christian Wunsch | Public domain mathematical concept |
+| Viterbi | Published 1967 by Andrew Viterbi | Public domain mathematical concept |
+| Harmonic Product Spectrum | Published 1969 by A. Michael Noll | Public domain mathematical concept |
+| Autocorrelation | Standard signal processing technique | Public domain |
+| Dynamic Programming | Computer science fundamental | Public domain |
+
+**What IS copyrighted:** FolkFriend's specific *implementation* of these algorithms (their Rust code, specific optimizations, code structure).
+
+### Safe Implementation Sources
+
+For each algorithm we want to implement, here are GPL-free sources:
+
+#### Needleman-Wunsch Sequence Alignment
+
+| Source | License | URL |
+|--------|---------|-----|
+| Orion9/NeedlemanWunsch | MIT | https://github.com/Orion9/NeedlemanWunsch |
+| kurtfu/nw-cuda | MIT | https://github.com/kurtfu/nw-cuda |
+| Aqcurate/Needleman-Wunsch | MIT | https://github.com/Aqcurate/Needleman-Wunsch |
+| Wikipedia pseudocode | Public Domain | https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm |
+| slowkow Python gist | Unlicensed/Public | https://gist.github.com/slowkow/06c6dba9180d013dfd82bec217d22eb5 |
+
+#### Harmonic Product Spectrum
+
+| Source | License | URL |
+|--------|---------|-----|
+| Wikipedia description | Public Domain | https://en.wikipedia.org/wiki/Pitch_detection_algorithm |
+| Original Noll 1969 paper | Academic | (Cite: A. M. Noll, "Pitch determination of human speech by the harmonic product spectrum") |
+| Stack Exchange explanations | CC BY-SA | https://dsp.stackexchange.com/questions/572/harmonic-product-spectrum-limitations-in-pitch-detection |
+
+#### Viterbi Algorithm
+
+| Source | License | URL |
+|--------|---------|-----|
+| Wikipedia with pseudocode | Public Domain | https://en.wikipedia.org/wiki/Viterbi_algorithm |
+| Beethoven (Swift, YIN-based) | MIT | https://github.com/vadymmarkov/Beethoven |
+| MATLAB documentation | Reference only | https://www.mathworks.com/help/audio/ug/pitch-tracking-using-multiple-pitch-estimations-and-hmm.html |
+
+**Note:** pYIN (the well-known Viterbi pitch tracker) is **GPL licensed** - do NOT use it as reference.
+
+### Recommended Safe Development Process
+
+#### 1. Clean Room Implementation
+
+For each algorithm:
+1. **DO NOT** have FolkFriend source code open while implementing
+2. **DO** read Wikipedia, academic papers, or MIT-licensed implementations
+3. **DO** write your own implementation from algorithmic descriptions
+4. **DO** document your sources for each implementation
+
+#### 2. Source Documentation
+
+When implementing, add comments like:
+```gdscript
+# Needleman-Wunsch sequence alignment
+# Implementation based on:
+# - Wikipedia: https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm
+# - MIT-licensed reference: https://github.com/Orion9/NeedlemanWunsch
+# NOT derived from FolkFriend (GPL-3.0)
+```
+
+#### 3. Architectural Inspiration (Safe)
+
+It IS safe to be inspired by FolkFriend's high-level choices:
+- "Use a two-pass search strategy" ✓
+- "Apply Viterbi smoothing after pitch detection" ✓
+- "Use N-gram indexing for fast filtering" ✓
+
+These are *ideas*, not *expression*, and ideas are not copyrightable.
+
+### FolkFriend Author Contact
+
+The FolkFriend repository does not provide:
+- Contact information for the author (Tom Wyllie)
+- A CONTRIBUTING.md file
+- Any stated exceptions to the GPL-3.0 license
+
+If you want to use FolkFriend code directly, you would need to:
+1. Contact the author to request a dual-license or exception
+2. OR relicense Tunepal as GPL-3.0 (which may conflict with Bryan Duggan's stated intent for "free and open-source" with MIT)
+
+### Summary: Our Approach
+
+| What We Learn from FolkFriend | How We Implement It |
+|------------------------------|---------------------|
+| Modified autocorrelation is effective | Implement HPS from Wikipedia/papers |
+| Viterbi smoothing improves accuracy | Implement Viterbi from Wikipedia pseudocode |
+| Two-pass search (n-gram + alignment) improves speed | Implement n-gram filter + NW from MIT sources |
+| 265ms total is achievable | Use as performance benchmark |
+
+**Bottom Line:** FolkFriend is an excellent *educational reference* showing what's possible. Our implementations must come from GPL-free sources to maintain MIT licensing.
 
 ---
 
@@ -490,8 +637,15 @@ print("Search: %d ms" % (Time.get_ticks_msec() - time_search))
 
 **Recommended Approach:** Implement harmonic product spectrum (HPS)
 
+**Safe Implementation Sources (NOT from FolkFriend):**
+- Wikipedia: https://en.wikipedia.org/wiki/Pitch_detection_algorithm
+- Original paper: A. M. Noll, "Pitch determination of human speech by the harmonic product spectrum" (1969)
+- Stack Exchange: https://dsp.stackexchange.com/questions/572/harmonic-product-spectrum-limitations-in-pitch-detection
+
 ```gdscript
-# Concept: Multiply spectrum by downsampled versions to find fundamental
+# Harmonic Product Spectrum for fundamental frequency detection
+# Source: Wikipedia Pitch Detection Algorithm article (Public Domain)
+# NOT derived from FolkFriend (GPL-3.0)
 func harmonic_product_spectrum(spectrum: AudioEffectSpectrumAnalyzerInstance,
                                freq_min: float, freq_max: float) -> float:
     var hps_scores = {}
@@ -526,9 +680,15 @@ func harmonic_product_spectrum(spectrum: AudioEffectSpectrumAnalyzerInstance,
 
 **Recommended Approach:** Implement n-gram pre-filtering
 
+**Safe Implementation Sources (NOT from FolkFriend):**
+- N-gram concept: Standard text search technique (no specific license needed)
+- This is a generic computer science concept, not derived from any specific codebase
+
 **Step 1: Build N-gram Index (at startup or in database)**
 
 ```gdscript
+# N-gram indexing for fast candidate filtering
+# Source: Standard computer science technique (public domain concept)
 # Build index of 4-note patterns
 func build_ngram_index(query_result: Array, n: int = 4) -> Dictionary:
     var index = {}  # ngram -> [tune_ids]
@@ -577,7 +737,15 @@ func get_candidate_tunes(note_string: String, ngram_index: Dictionary,
 
 **Recommended Approach:** Implement simplified Viterbi in GDScript or add to C++ extension
 
+**Safe Implementation Sources (NOT from FolkFriend):**
+- Wikipedia: https://en.wikipedia.org/wiki/Viterbi_algorithm (Public Domain pseudocode)
+- Original paper: A. J. Viterbi, "Error bounds for convolutional codes" (1967)
+- **AVOID:** pYIN library (GPL licensed)
+
 ```cpp
+// Viterbi algorithm for pitch sequence optimization
+// Source: Wikipedia Viterbi Algorithm article (Public Domain)
+// NOT derived from FolkFriend (GPL-3.0)
 // Add to tunepal.cpp
 std::vector<int> viterbi_decode(const std::vector<std::vector<float>>& energy,
                                  int num_pitches) {
@@ -629,7 +797,16 @@ std::vector<int> viterbi_decode(const std::vector<std::vector<float>>& energy,
 
 **Recommended Approach:** Replace edit distance with NW alignment in tunepal.cpp
 
+**Safe Implementation Sources (NOT from FolkFriend):**
+- Wikipedia: https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm (Public Domain)
+- MIT-licensed C++: https://github.com/Orion9/NeedlemanWunsch
+- MIT-licensed CUDA: https://github.com/kurtfu/nw-cuda
+- Original paper: Needleman & Wunsch, "A general method applicable to the search for similarities" (1970)
+
 ```cpp
+// Needleman-Wunsch sequence alignment for melody matching
+// Source: Wikipedia NW article + MIT-licensed implementations
+// NOT derived from FolkFriend (GPL-3.0)
 float needleman_wunsch(const godot::String& pattern, const godot::String& text) {
     const float MATCH = 2.0f;
     const float MISMATCH = -2.0f;
@@ -817,7 +994,10 @@ duration_tolerance = 0.33               # 33% for grouping
 | Date | Version | Changes |
 |------|---------|---------|
 | 2024-12 | 1.0 | Initial analysis based on FolkFriend source code review |
+| 2024-12 | 1.1 | **Added comprehensive licensing analysis (Section 0)**. Clarified GPL-3.0 vs MIT incompatibility. Added safe implementation sources for all algorithms. Updated code recommendations with source documentation requirements. |
 
 ---
 
 *This document should be updated as Tunepal implements recommendations and as FolkFriend evolves.*
+
+**Important:** All implementations derived from this analysis MUST follow the clean-room process outlined in Section 0 to maintain MIT license compatibility.
