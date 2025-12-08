@@ -20,6 +20,9 @@ FolkFriend is a Rust-based folk music transcription and recognition system that 
 ## Table of Contents
 
 0. [Licensing Analysis (CRITICAL)](#0-licensing-analysis-critical)
+   - [0.1 Alternative Path: GPL-3.0 Relicensing](#01-alternative-path-gpl-30-relicensing)
+   - [0.2 Realism Assessment: Clean-Room Implementation](#02-realism-assessment-clean-room-implementation)
+   - [0.3 High-Level Implementation Plan](#03-high-level-implementation-plan)
 1. [What is FolkFriend?](#1-what-is-folkfriend)
 2. [Architecture Comparison](#2-architecture-comparison)
 3. [Signal Processing: Deep Comparison](#3-signal-processing-deep-comparison)
@@ -174,6 +177,355 @@ If you want to use FolkFriend code directly, you would need to:
 | 265ms total is achievable | Use as performance benchmark |
 
 **Bottom Line:** FolkFriend is an excellent *educational reference* showing what's possible. Our implementations must come from GPL-free sources to maintain MIT licensing.
+
+### 0.1 Alternative Path: GPL-3.0 Relicensing
+
+For completeness, we must consider the alternative of relicensing Tunepal to GPL-3.0, which would allow direct incorporation of FolkFriend code.
+
+#### What GPL-3.0 Relicensing Would Enable
+
+| Benefit | Description |
+|---------|-------------|
+| **Direct Code Use** | Could copy FolkFriend's Rust implementation directly |
+| **Library Linking** | Could use FolkFriend as a linked library (if compiled to shared library) |
+| **Faster Development** | Skip algorithm reimplementation, use proven code |
+| **Maintained Upstream** | Benefit from FolkFriend bug fixes and improvements |
+
+#### What GPL-3.0 Relicensing Would Require
+
+| Requirement | Impact |
+|-------------|--------|
+| **Bryan Duggan's Approval** | This is 100% Bryan's decision as original author |
+| **All Contributors Agreement** | Any existing contributors would need to agree |
+| **Source Code Distribution** | Must provide source code to all users |
+| **Copyleft Propagation** | Any derivative works must also be GPL-3.0 |
+| **Commercial Use Restrictions** | GPL allows commercial use, but derivatives must remain GPL |
+| **App Store Considerations** | GPL apps can be distributed on App Store, but users must be able to get source |
+
+#### Practical Implications for Tunepal
+
+| Aspect | MIT (Current) | GPL-3.0 (If Changed) |
+|--------|---------------|----------------------|
+| **Commercial Forks** | Allowed freely | Must also be GPL-3.0 |
+| **Proprietary Integration** | Allowed | Not allowed |
+| **App Store Distribution** | Simple | Allowed but requires source availability |
+| **Enterprise Adoption** | Easier | Some enterprises avoid GPL |
+| **Community Contributions** | Open to all | Contributors accept GPL terms |
+| **Bryan's Stated Intent** | "Free and open-source" via MIT | Still "free and open-source" but copyleft |
+
+#### Decision Framework
+
+**Arguments FOR GPL-3.0:**
+- Could directly use FolkFriend's mature, tested algorithms
+- Faster path to feature parity
+- Ensures all derivatives remain open source
+
+**Arguments AGAINST GPL-3.0:**
+- Conflicts with Bryan's apparent intent (MIT chosen deliberately)
+- Reduces flexibility for commercial/enterprise adoption
+- The algorithms are public domain anyway - only saves implementation time
+- Creates dependency on external project's maintenance
+
+**Recommendation:** Maintain MIT licensing unless Bryan specifically requests otherwise. The clean-room implementation path is realistic (see below) and preserves maximum flexibility.
+
+**Decision Authority:** This decision belongs solely to Bryan Duggan as the original author and copyright holder.
+
+### 0.2 Realism Assessment: Clean-Room Implementation
+
+A critical question: **Is it actually realistic to implement these algorithms from source without FolkFriend's code?**
+
+#### Assessment by Algorithm
+
+| Algorithm | Complexity | Available Resources | Realistic? | Confidence |
+|-----------|------------|---------------------|------------|------------|
+| **Harmonic Product Spectrum** | Low | Wikipedia, papers, Stack Exchange | **Yes** | 95% |
+| **N-gram Indexing** | Low | Standard CS technique | **Yes** | 99% |
+| **Needleman-Wunsch** | Medium | Wikipedia pseudocode, MIT implementations | **Yes** | 95% |
+| **Viterbi Decoding** | Medium | Wikipedia pseudocode | **Yes** | 90% |
+| **Full Autocorrelation Pipeline** | High | Academic papers | **Maybe** | 70% |
+
+#### Detailed Realism Analysis
+
+##### Harmonic Product Spectrum (HPS) - **HIGHLY REALISTIC**
+
+**Why it's achievable:**
+- Algorithm is straightforward: multiply spectrum by downsampled versions
+- Well-documented in Wikipedia and DSP textbooks
+- No complex dependencies or tuning required
+- Conceptually simple: harmonics align at fundamental frequency
+
+**Implementation complexity:** ~30-50 lines of GDScript
+
+**Risk:** Low. This is undergraduate DSP coursework level.
+
+##### N-gram Indexing - **TRIVIALLY REALISTIC**
+
+**Why it's achievable:**
+- Standard computer science technique taught in intro courses
+- No special knowledge required
+- Dictionary/hashmap based - native to any language
+- FolkFriend's choice of quadgrams (n=4) is a common default
+
+**Implementation complexity:** ~20-30 lines of GDScript
+
+**Risk:** Essentially zero. This is first-year CS material.
+
+##### Needleman-Wunsch - **HIGHLY REALISTIC**
+
+**Why it's achievable:**
+- Textbook dynamic programming algorithm
+- Wikipedia provides complete pseudocode
+- Multiple MIT-licensed implementations to study
+- Well-understood for 50+ years
+- Standard parameters (match=+2, mismatch=-2, gap=-1) are conventional
+
+**Implementation complexity:** ~40-60 lines of C++
+
+**Risk:** Low. Any developer who understands DP can implement this.
+
+##### Viterbi Decoding - **REALISTIC WITH CARE**
+
+**Why it's achievable:**
+- Well-documented algorithm (Wikipedia has pseudocode)
+- Standard in speech recognition, widely taught
+- The basic algorithm is straightforward
+
+**Challenges:**
+- Requires good pitch candidate generation as input
+- Transition probabilities need tuning (but reasonable defaults exist)
+- May require experimentation to match FolkFriend's quality
+
+**Implementation complexity:** ~60-100 lines of C++
+
+**Risk:** Medium. Algorithm is clear, but tuning for music may take iteration.
+
+##### Full Autocorrelation Pipeline - **ACHIEVABLE BUT COMPLEX**
+
+**Why it's harder:**
+- Multiple steps chained together
+- Specific choices (6th root magnitude compression, Blackman window) less obvious from first principles
+- Tuning parameters require experimentation
+- Less directly documented in Wikipedia/textbooks
+
+**However:**
+- Each individual step IS documented
+- Academic papers describe similar pipelines
+- Godot's built-in spectrum analyzer handles some complexity
+- We may not need identical approach - HPS might suffice
+
+**Risk:** Medium-High for exact replication, Low-Medium for equivalent functionality.
+
+#### Overall Assessment
+
+**Verdict: REALISTIC** ✓
+
+The clean-room implementation path is practical for these reasons:
+
+1. **All core algorithms are public domain** and well-documented
+2. **MIT-licensed reference implementations exist** for the most complex algorithm (NW)
+3. **Individual components are teachable/learnable** - nothing requires access to FolkFriend's code
+4. **Godot provides infrastructure** (spectrum analyzer) that simplifies audio processing
+5. **Iterative approach possible** - can implement incrementally and measure improvement
+
+The only significant unknown is whether our implementations will match FolkFriend's exact accuracy. However:
+- We can benchmark against FolkFriend's published results
+- We may achieve similar or better results through different approaches
+- The goal is "meets or exceeds," not "identical implementation"
+
+### 0.3 High-Level Implementation Plan
+
+This section provides a roadmap for implementing FolkFriend-inspired improvements from clean sources.
+
+#### Phase 1: Foundations & Benchmarking (Week 1-2)
+
+**Goal:** Establish baseline and infrastructure
+
+| Task | Description | Source |
+|------|-------------|--------|
+| **Add Timing Instrumentation** | Measure current note detection and search times | N/A |
+| **Create Test Dataset** | Record/collect test tunes for consistent benchmarking | N/A |
+| **Establish Baseline Metrics** | Document current accuracy and speed | N/A |
+| **Target Definition** | Set goals based on FolkFriend's ~265ms benchmark | FolkFriend README |
+
+**Deliverables:**
+- Benchmark script/tooling
+- Baseline performance report
+- Success criteria document
+
+#### Phase 2: Quick Wins (Week 2-3)
+
+**Goal:** Achieve significant improvement with lowest-risk changes
+
+##### 2.1 N-gram Pre-filtering
+
+| Aspect | Details |
+|--------|---------|
+| **Concept** | Build index of 4-note patterns at startup, filter candidates before edit distance |
+| **Source** | Standard CS technique (no specific reference needed) |
+| **Implementation** | GDScript dictionary-based index |
+| **Location** | New file: `TunepalGodot/Scripts/ngram_index.gd` |
+| **Expected Gain** | 5-10x faster search |
+
+```
+High-Level Steps:
+1. At startup, iterate through all tunes in database
+2. For each tune's search_key, extract all 4-character substrings
+3. Store mapping: ngram -> [tune_ids that contain it]
+4. At search time, extract ngrams from user's played pattern
+5. Find tunes that share multiple ngrams with user pattern
+6. Only run edit distance on these candidates
+```
+
+##### 2.2 Basic Octave Correction
+
+| Aspect | Details |
+|--------|---------|
+| **Concept** | Detect and correct obvious octave jumps in note sequence |
+| **Source** | Basic music theory / heuristics |
+| **Implementation** | GDScript post-processing in record.gd |
+| **Location** | Add function to `TunepalGodot/Scripts/record.gd` |
+| **Expected Gain** | 20-30% fewer octave errors |
+
+```
+High-Level Steps:
+1. After note detection, analyze note sequence
+2. Identify notes that jump an octave from neighbors
+3. If surrounding notes suggest different octave, correct
+4. Use musical context (key signature, typical range) for guidance
+```
+
+#### Phase 3: Pitch Detection Enhancement (Week 3-5)
+
+**Goal:** Significantly improve note detection accuracy
+
+##### 3.1 Harmonic Product Spectrum
+
+| Aspect | Details |
+|--------|---------|
+| **Concept** | Multiply spectrum by downsampled versions to find fundamental |
+| **Source** | Wikipedia, Noll 1969 paper |
+| **Implementation** | GDScript or C++ extension |
+| **Location** | New function in `record.gd` or new C++ method in `tunepal.cpp` |
+| **Expected Gain** | 30-50% fewer octave/harmonic errors |
+
+```
+High-Level Steps:
+1. Get spectrum from Godot's AudioEffectAnalyzer
+2. For each candidate frequency f:
+   a. Multiply magnitude at f
+   b. By magnitude at 2f (downsampled by 2)
+   c. By magnitude at 3f (downsampled by 3)
+   d. By magnitude at 4f (downsampled by 4)
+3. The f with highest product is likely the fundamental
+4. Map to nearest MIDI note
+```
+
+**Reference Sources:**
+- https://en.wikipedia.org/wiki/Pitch_detection_algorithm
+- A. M. Noll (1969), "Pitch determination of human speech by the harmonic product spectrum"
+
+#### Phase 4: Temporal Smoothing (Week 5-7)
+
+**Goal:** Improve coherence of detected note sequences
+
+##### 4.1 Viterbi Decoding
+
+| Aspect | Details |
+|--------|---------|
+| **Concept** | Find globally optimal pitch path using dynamic programming |
+| **Source** | Wikipedia Viterbi algorithm article |
+| **Implementation** | C++ extension (for performance) |
+| **Location** | Add to `src/tunepal.cpp` |
+| **Expected Gain** | Smoother sequences, fewer spurious notes |
+
+```
+High-Level Steps:
+1. For each audio frame, generate pitch candidates with confidence scores
+2. Initialize Viterbi lattice: score[0][pitch] = initial_confidence[pitch]
+3. For each subsequent frame f:
+   a. For each pitch p:
+      - Consider all possible previous pitches q
+      - score[f][p] = max(score[f-1][q] + transition(q,p) + confidence[f][p])
+      - Store backpointer for traceback
+4. Find best final pitch, trace back to get sequence
+5. Convert pitch sequence to note names
+```
+
+**Reference Sources:**
+- https://en.wikipedia.org/wiki/Viterbi_algorithm
+- Any speech recognition textbook
+
+#### Phase 5: Advanced Matching (Week 7-9)
+
+**Goal:** Improve match quality for varied input
+
+##### 5.1 Needleman-Wunsch Alignment
+
+| Aspect | Details |
+|--------|---------|
+| **Concept** | Proper sequence alignment with separate gap penalties |
+| **Source** | Wikipedia, MIT-licensed implementations |
+| **Implementation** | C++ (replace or augment current edit distance) |
+| **Location** | Modify `src/tunepal.cpp` |
+| **Expected Gain** | Better handling of insertions/deletions in played tunes |
+
+```
+High-Level Steps:
+1. Create DP matrix of size (m+1) x (n+1)
+2. Initialize: row 0 = gap penalties, col 0 = gap penalties
+3. Fill matrix:
+   - Match: +2, Mismatch: -2, Gap: -1
+   - score[i][j] = max(
+       score[i-1][j-1] + match/mismatch,
+       score[i-1][j] + gap,
+       score[i][j-1] + gap
+     )
+4. Final score in score[m][n]
+5. Normalize: similarity = 0.5 * (score / min(m,n))
+```
+
+**Reference Sources:**
+- https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm
+- https://github.com/Orion9/NeedlemanWunsch (MIT)
+
+#### Phase 6: Validation & Tuning (Week 9-10)
+
+**Goal:** Verify improvements and tune parameters
+
+| Task | Description |
+|------|-------------|
+| **Benchmark All Changes** | Run full test suite against baseline |
+| **Compare to FolkFriend** | Verify we meet/exceed 265ms target |
+| **Parameter Tuning** | Adjust thresholds, penalties based on results |
+| **Edge Case Testing** | Test with difficult inputs (fast tunes, ornaments) |
+| **User Testing** | Get feedback from real musicians |
+
+#### Summary: Implementation Roadmap
+
+```
+PHASE 1 (Week 1-2): Benchmarking
+  └─> Establish baseline, create test suite
+
+PHASE 2 (Week 2-3): Quick Wins
+  ├─> N-gram indexing (5-10x search speedup)
+  └─> Basic octave correction (20-30% improvement)
+
+PHASE 3 (Week 3-5): Pitch Detection
+  └─> Harmonic Product Spectrum (30-50% improvement)
+
+PHASE 4 (Week 5-7): Temporal Smoothing
+  └─> Viterbi decoding (smoother sequences)
+
+PHASE 5 (Week 7-9): Advanced Matching
+  └─> Needleman-Wunsch (better alignment)
+
+PHASE 6 (Week 9-10): Validation
+  └─> Benchmark, tune, test
+```
+
+**Total Estimated Effort:** 8-10 weeks for full implementation
+
+**Minimum Viable Improvement:** Phases 1-2 only (2-3 weeks) for significant gains
 
 ---
 
@@ -994,7 +1346,8 @@ duration_tolerance = 0.33               # 33% for grouping
 | Date | Version | Changes |
 |------|---------|---------|
 | 2024-12 | 1.0 | Initial analysis based on FolkFriend source code review |
-| 2024-12 | 1.1 | **Added comprehensive licensing analysis (Section 0)**. Clarified GPL-3.0 vs MIT incompatibility. Added safe implementation sources for all algorithms. Updated code recommendations with source documentation requirements. |
+| 2024-12 | 1.1 | Added comprehensive licensing analysis (Section 0). Clarified GPL-3.0 vs MIT incompatibility. Added safe implementation sources for all algorithms. |
+| 2024-12 | 1.2 | **Added GPL-3.0 relicensing option (Section 0.1)** for completeness. Added **realism assessment (Section 0.2)** confirming clean-room implementation is practical. Added **high-level implementation plan (Section 0.3)** with 6-phase roadmap. |
 
 ---
 
