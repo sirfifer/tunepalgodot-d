@@ -167,6 +167,238 @@ Godot does **not** currently support Apple Watch (watchOS) or Wear OS as export 
 
 ---
 
+## Cross-Platform Development Options
+
+Given the project's core principle of **cross-platform support**, we must evaluate whether a single codebase can target both Apple Watch and Wear OS (and potentially future wearables).
+
+### The Hard Truth
+
+**There is NO framework that provides true cross-platform UI for both watchOS and Wear OS from a single codebase.**
+
+Why? Apple's watchOS fundamentally does not expose the low-level UI frameworks (CoreAnimation, UIView, MetalKit) that cross-platform renderers need. This is a deliberate Apple design decision.
+
+### Framework Comparison
+
+| Framework | Wear OS | watchOS | Shared Code Possible? |
+|-----------|---------|---------|----------------------|
+| **Flutter** | ✅ Good (it's Android) | ❌ No native support | Business logic only |
+| **React Native** | ⚠️ Via bridge | ❌ No native support | Business logic only |
+| **Kotlin Multiplatform** | ✅ Native Kotlin | ✅ Compiles to native | ✅ Business logic + some platform code |
+| **.NET MAUI** | ⚠️ Experimental | ⚠️ Community effort | Limited |
+| **Godot** | ❌ No support | ❌ No support | N/A |
+
+### Detailed Analysis
+
+#### Flutter
+
+**Wear OS:** Flutter works well - Wear OS is just Android with a different form factor. The `wear` plugin handles round screens and rotary input.
+
+**watchOS:** Flutter **cannot** build watchOS apps. Apple's watchOS architecture prevents third-party UI frameworks from rendering. You must build a native SwiftUI app separately.
+
+**Verdict:** Flutter can share phone app code, but watch apps still need separate native implementations.
+
+```
+Flutter Phone App (shared)
+    ├── iOS app
+    ├── Android app
+    └── Wear OS app (via wear plugin)
+
+Separate Native:
+    └── watchOS app (SwiftUI) ← communicates via platform channels
+```
+
+#### Kotlin Multiplatform (KMP) - BEST OPTION
+
+KMP can compile Kotlin code to **multiple targets** including:
+- Android (native)
+- iOS (via Kotlin/Native)
+- watchOS (via Kotlin/Native)
+- Wear OS (native Kotlin)
+
+**What can be shared:**
+- Business logic (audio processing, API calls)
+- Data models
+- Networking code
+- State management
+
+**What must be native:**
+- UI (SwiftUI for watchOS, Jetpack Compose for Wear OS)
+- Platform-specific audio APIs
+
+**Example Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Kotlin Multiplatform Shared Module              │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │  - Audio buffer handling                                │ │
+│  │  - TunePal API client                                   │ │
+│  │  - Data models (TuneResult, SearchQuery)                │ │
+│  │  - Business logic                                       │ │
+│  └────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+         │              │              │              │
+         ▼              ▼              ▼              ▼
+    ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐
+    │ watchOS │   │   iOS   │   │ Android │   │ Wear OS │
+    │ SwiftUI │   │ SwiftUI │   │ Compose │   │ Compose │
+    └─────────┘   └─────────┘   └─────────┘   └─────────┘
+```
+
+**Proven:** Developers have successfully run KMP code on Apple Watch. Libraries like `HealthKMP` demonstrate cross-platform wearable code sharing.
+
+#### React Native
+
+Similar to Flutter - good for phone apps, but watch apps require native development with bridge libraries (`react-native-watch-connectivity` for Apple Watch, `react-native-wear-connectivity` for Wear OS).
+
+#### .NET MAUI
+
+Experimental wearable support exists via community efforts. Performance on constrained watch hardware is a concern. Not recommended for production wearable apps.
+
+### Recommendation for TunePal
+
+**Use Kotlin Multiplatform (KMP)** for maximum code sharing:
+
+| Layer | Technology | Platforms |
+|-------|------------|-----------|
+| Shared Business Logic | Kotlin Multiplatform | All |
+| watchOS UI | SwiftUI | Apple Watch |
+| Wear OS UI | Jetpack Compose | Android watches |
+| Phone Bridge (iOS) | Swift + KMP | iPhone |
+| Phone Bridge (Android) | Kotlin + KMP | Android phone |
+| Godot Integration | GDExtension calling KMP | Phone apps |
+
+**Code Reuse Estimate:**
+
+| Component | Shared vs Native |
+|-----------|------------------|
+| Audio buffer handling | 70-80% shared |
+| API client | 90-100% shared |
+| Data models | 100% shared |
+| UI code | 0% shared (native per platform) |
+| Platform audio capture | 0% shared (native per platform) |
+| **Overall** | **~50-60% shared** |
+
+This is significantly better than writing everything twice.
+
+---
+
+## Future Wearables: Smart Glasses & Beyond
+
+### Meta Ray-Ban Smart Glasses
+
+Meta recently released the **Wearables Device Access Toolkit** - their first SDK for third-party apps on Ray-Ban Meta glasses.
+
+**How it works:**
+- Apps run on the **phone**, not the glasses
+- SDK accesses glasses sensors (camera, microphone) via Bluetooth
+- Audio accessible via standard iOS/Android Bluetooth profiles
+- Video limited to 720p/30fps due to Bluetooth bandwidth
+
+**Relevance to TunePal:**
+- Could capture audio from glasses microphone
+- First-person perspective during sessions
+- Hands-free activation potential
+- **Currently limited:** Only select partners can ship apps publicly (open access expected 2026)
+
+### Google Android XR
+
+Announced December 2024, launching 2025:
+- New platform for AR glasses and headsets
+- Partners include Samsung, Xreal, Warby Parker
+- SDK preview available with ARCore, Unity, Jetpack Compose support
+- Gemini AI integration for audio/visual context
+
+**Relevance to TunePal:**
+- Future platform to watch
+- Similar audio capture use case possible
+- Too early for production apps
+
+### Xreal Glasses
+
+- SDK available for spatial computing
+- 6DoF tracking, hand tracking
+- Tethered design (connects to phone/computer)
+- Could be interesting for AR sheet music display
+
+### Snap Spectacles
+
+- AR glasses, developer-only ($99/month lease)
+- Next generation "Specs" coming 2026
+- Gemini AI integration announced
+- Not practical for TunePal currently
+
+### Smart Glasses Summary
+
+| Platform | Audio Access | App Availability | TunePal Relevance |
+|----------|--------------|------------------|-------------------|
+| Meta Ray-Ban | ✅ Via Bluetooth | Limited (2026 open) | High - same use case |
+| Android XR | TBD | 2025 | Medium - future platform |
+| Xreal | ✅ SDK available | Available | Low - AR focus |
+| Snap Specs | Unknown | Developer only | Low - expensive, limited |
+
+**Recommendation:** Monitor Meta Ray-Ban SDK. When open access arrives (2026), this could be an excellent hands-free tune capture device.
+
+---
+
+## Revised Implementation Strategy
+
+Given cross-platform constraints, here's the updated approach:
+
+### Approach A: Apple Watch First (Native Swift)
+
+**Pros:**
+- Fastest to market
+- Best user experience
+- Most Apple Watch users
+
+**Cons:**
+- No code reuse with Wear OS
+- Must rebuild for Android watches
+
+**Effort:** 68-120 hours (Apple Watch only)
+
+### Approach B: Kotlin Multiplatform from Start
+
+**Pros:**
+- ~50-60% code shared between platforms
+- Future-proof for additional platforms
+- Consistent business logic
+
+**Cons:**
+- Higher initial complexity
+- Learning curve for KMP
+- Longer time to first release
+
+**Effort:** 100-160 hours (both platforms, but shared foundation)
+
+### Approach C: Apple Watch MVP, Then KMP Migration
+
+**Pros:**
+- Ship Apple Watch quickly
+- Learn from real users
+- Migrate to KMP when adding Wear OS
+
+**Cons:**
+- Some throwaway code
+- Migration effort later
+
+**Effort:** 68-120 hours (MVP) + 80-120 hours (KMP migration + Wear OS)
+
+### Recommended: Approach C
+
+**Start with native Swift for Apple Watch MVP**, then evaluate KMP when expanding to Wear OS:
+
+1. **Phase 1:** Ship Apple Watch app in Swift/SwiftUI
+2. **Phase 2:** When ready for Wear OS, evaluate whether to:
+   - Port Swift logic to Kotlin (if simple enough)
+   - Refactor to KMP shared module (if complexity warrants)
+3. **Phase 3:** Add smart glasses support using shared KMP module
+
+This balances speed-to-market with future flexibility.
+
+---
+
 ## TunePal Recognition Requirements
 
 Understanding what TunePal needs helps determine watch architecture:
@@ -519,6 +751,7 @@ Q4: Advanced Features
 
 ## Sources
 
+### Platform Documentation
 - [Apple Watch Audio Recording - Stack Overflow](https://stackoverflow.com/questions/29939704/audio-recording-capabilites-on-apple-watch)
 - [Wear OS Audio Recording - Stack Overflow](https://stackoverflow.com/questions/47954616/how-to-record-audio-on-android-wear-works-on-phone-not-on-watch)
 - [Shazam on Apple Watch - Apple Support](https://support.apple.com/guide/shazam/use-shazam-music-recognition-on-apple-watch-dev6fc829d35/web)
@@ -526,3 +759,21 @@ Q4: Advanced Features
 - [Watch Connectivity Tutorial - Kodeco](https://www.kodeco.com/books/watchos-with-swiftui-by-tutorials/v1.0/chapters/4-watch-connectivity)
 - [TunePal Help](https://tunepal.org/tunepal/help.php)
 - [Godot Wearable Discussion](https://forum.godotengine.org/t/making-wear-os-games/55421)
+
+### Cross-Platform Frameworks
+- [Flutter for Apple Watch Integration - Cheesecake Labs](https://cheesecakelabs.com/blog/flutter-apps-apple-watch-integration/)
+- [Building Wear OS apps with Flutter - Very Good Ventures](https://www.verygood.ventures/blog/building-wear-os-apps-with-flutter-a-very-good-guide)
+- [Flutter + watchOS Approach - Medium](https://medium.com/@ferrazrx/flutter-apple-watch-swift-b43110dc4545)
+- [Kotlin Multiplatform on Apple Watch - Oliver DeLange](https://oliverdelange.co.uk/projects/kmm_apple_watch/)
+- [KMP watchOS Target - Carlos Mota](https://cafonsomota.medium.com/adding-a-new-target-to-your-kmp-project-hello-watchos-92aeb0272cf8)
+- [React Native Watch Connectivity - GitHub](https://github.com/watch-connectivity/react-native-watch-connectivity)
+- [React Native Wear Connectivity - GitHub](https://github.com/fabOnReact/react-native-wear-connectivity)
+- [.NET MAUI Wear OS Discussion - GitHub](https://github.com/dotnet/maui/discussions/1144)
+- [HealthKMP - Cross-platform Health APIs](https://github.com/vitoksmile/HealthKMP)
+
+### Smart Glasses & Future Platforms
+- [Meta Wearables Device Access Toolkit - Meta Developers](https://developers.meta.com/blog/introducing-meta-wearables-device-access-toolkit)
+- [Meta Smart Glasses SDK Announcement - UploadVR](https://www.uploadvr.com/meta-wearables-device-access-toolkit-announced-smart-glasses-sdk/)
+- [Android XR Platform - Google Blog](https://blog.google/products/android/android-xr/)
+- [Xreal SDK Documentation](https://docs.xreal.com/)
+- [Google I/O 2025 Android XR - FoneArena](https://www.fonearena.com/blog/454197/google-i-o-2025-android-xr-platform-glasses-sdk-preview-2-unity-tools.html)
