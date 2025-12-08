@@ -49,6 +49,65 @@ So when I say I care about this project, it's not abstract. Tunepal has been par
 
 ---
 
+## Full Transparency: My Development Process
+
+**I want to be completely upfront about how I've been doing this work.**
+
+Since forking your repository, the majority of my contributions have been created through direct collaboration with **Claude Code** (Anthropic's AI coding assistant), primarily using the **Opus 4.5** model. This means:
+
+- I describe what I want to explore, build, or document
+- Claude helps research, write code, create documentation, and analyze options
+- I review, guide, iterate, and make decisions
+- The AI does much of the heavy lifting on implementation
+
+### Why I'm Working This Way
+
+This is part of a deliberate journey I'm on. I'm reinventing my career around AI - not just using AI tools, but developing deep expertise in *effective collaboration with AI*. The jobs I'm pursuing (many in Dublin) require demonstrating real skill in this area.
+
+So when I picked up this project, it was partly because:
+1. I genuinely love traditional music and want Tunepal to succeed
+2. It's a real-world project that lets me build and demonstrate AI collaboration skills
+3. I can potentially contribute something meaningful while learning
+
+### Why I'm Telling You This
+
+**Transparency matters.** You deserve to know exactly what you're looking at:
+
+- The exploration documents, code analysis, and documentation have significant AI involvement
+- My role has been direction, judgment, review, and iteration - not line-by-line authorship
+- The quality and depth would not have been achievable in this timeframe without AI assistance
+
+### If You Have Concerns
+
+**I completely respect that you may have reservations about AI-assisted development.** Some people:
+- Prefer human-authored contributions only
+- Have concerns about AI training on open source code
+- Simply prefer traditional development workflows
+- Have other reasons I haven't considered
+
+**If any of this is a problem for you, please tell me.** I will:
+- Gladly adapt my approach to whatever you're comfortable with
+- Accept any constraints you set on how AI tools are used
+- Abandon this fork entirely if that's your preference
+
+The project is yours. The community is what matters. I have no ego invested in having my contributions accepted - I genuinely just want to help in whatever way is welcome.
+
+### A Note on Quality
+
+Despite the AI involvement, I believe the work stands on its own merits:
+- Research is factual and verifiable
+- Code builds and runs
+- Analysis is thorough and considers multiple perspectives
+- Everything is documented for future maintainability
+
+But I wanted you to have the full picture before deciding whether this collaboration makes sense for you.
+
+### A Thought on AI as a Feature
+
+I have no current plan to add AI as a feature within Tunepal itself - I won't force AI into the product without a compelling use case. That said, if a genuinely valuable application emerged (and I don't have one in mind today), I'd be enthusiastic about exploring it. This would align with my broader learning goals and could potentially benefit the project. Just putting it on the table as something to think about, not a proposal.
+
+---
+
 ## Summary of Work Done
 
 Here's a concise overview of what's been added to this fork since departing from your repository. All of this is available for you to review, cherry-pick, or adopt wholesale.
@@ -98,9 +157,10 @@ These are research documents exploring features aligned with your stated vision.
 | **LilyPond Integration** | `docs/exploration/EXPLORE_001_LILYPOND_INTEGRATION.md` | Analysis of LilyPond for publication-quality PDF export |
 | **Smartwatch Integration** | `docs/exploration/EXPLORE_002_SMARTWATCH_INTEGRATION.md` | Apple Watch and Wear OS for quick tune capture at sessions |
 | **Learning & Playback** | `docs/exploration/EXPLORE_003_LEARNING_AND_PLAYBACK.md` | Tempo control, A-B loops, multi-instrument accompaniment, lilt/expression |
+| **FolkFriend Analysis** | `docs/exploration/EXPLORE_004_FOLKFRIEND_ANALYSIS.md` | Deep competitive analysis of FolkFriend tune recognition - what it does better, licensing implications (GPL vs MIT), clean-room implementation roadmap |
 | **EasyABC Analysis** | `docs/analysis/easyabc-ecosystem-analysis.md` | State of the EasyABC project and its forks |
 
-**Why:** Your README mentions "interactive music scores with playback, repeat sections and slowdown" and "support for full range of instruments, sessions and recordings." These explorations dive deep into what that might look like.
+**Why:** Your README mentions "interactive music scores with playback, repeat sections and slowdown" and "support for full range of instruments, sessions and recordings." These explorations dive deep into what that might look like. The FolkFriend analysis specifically looks at what "best in class" tune recognition looks like and how Tunepal could match or exceed it.
 
 ---
 
@@ -124,6 +184,7 @@ Here's every file added or significantly modified, so you can review at your lei
   install-godot.sh           # SessionStart hook for Godot installation
 
 docs/
+  FORK_OVERVIEW_FOR_BRYAN.md # This document - overview for the original author
   IOS_SIMULATOR_WORKFLOW.md  # iOS simulator development guide
   plans/
     PLAN_001_SQLITE_IOS_SIMULATOR.md  # iOS simulator SQLite build plan
@@ -131,6 +192,7 @@ docs/
     EXPLORE_001_LILYPOND_INTEGRATION.md      # LilyPond research
     EXPLORE_002_SMARTWATCH_INTEGRATION.md    # Smartwatch research
     EXPLORE_003_LEARNING_AND_PLAYBACK.md     # Learning features research
+    EXPLORE_004_FOLKFRIEND_ANALYSIS.md       # FolkFriend competitive analysis & implementation roadmap
   analysis/
     easyabc-ecosystem-analysis.md            # EasyABC ecosystem state
 
@@ -274,6 +336,26 @@ I'm open to whatever works best for you and the project.
 
 ---
 
+## My Current Approach (Until We Connect)
+
+I understand you may be traveling or otherwise occupied. Here's my plan while I await your response:
+
+**Short-term:** Keep working toward an iOS MVP at or near feature parity with the original iPhone app. This gives me a concrete goal and generates potentially useful work.
+
+**After MVP:** Reach out locally to a few musicians I know in Vancouver, Washington (there's a thriving session here) for informal testing and feedback - people who've used Tunepal and can give direct input.
+
+**What I'm deliberately NOT doing:** Engaging the broader internet community, posting on forums, or reaching out publicly about this work. I don't want to create confusion or step on toes before we've had a chance to connect. The wider conversation can wait until we've talked.
+
+---
+
+## Acknowledging the Full Team
+
+I'll be honest: I initially assumed you had done nearly everything yourself (aside from the Android port). Reading the attribution in the original app, I now realize there's a whole team of contributors who've shaped Tunepal over the years.
+
+I want to be clear: I'm not trying to barrel in and take over. If there are other active contributors who own pieces of this and want to continue owning them, I want to engage appropriately. My goal is to collaborate, learn, and help - not to displace anyone who's been part of making Tunepal what it is.
+
+---
+
 ## How to Reach Me
 
 I'd be honored to discuss any of this with you. Whether it's a quick email, a video call, or meeting at a session somewhere - whatever works for you.
@@ -311,3 +393,4 @@ A Fellow Traditional Musician
 
 *This document: `docs/FORK_OVERVIEW_FOR_BRYAN.md`*
 *Last updated: December 8, 2025*
+*Updated to include: AI workflow transparency section, FolkFriend competitive analysis*
