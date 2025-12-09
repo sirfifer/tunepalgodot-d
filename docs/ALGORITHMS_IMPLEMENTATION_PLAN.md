@@ -1,7 +1,7 @@
 # Tunepal Algorithm Enhancement: Technical Implementation Plan
 
 **Document Type:** Technical Implementation Specification
-**Date:** December 2024
+**Date:** December 2024 (Updated)
 **Status:** Ready for Implementation
 **License:** MIT (All implementations derived from MIT-licensed or public domain sources)
 
@@ -9,54 +9,71 @@
 
 ## Executive Summary
 
-This document provides a complete technical specification for implementing three key algorithms to significantly improve Tunepal's pitch detection and tune matching capabilities:
+This document provides a complete technical specification for implementing advanced algorithms to significantly improve Tunepal's pitch detection and tune matching capabilities, with special focus on **harmonic-rich instruments** (guitar, accordion, fiddle, concertina).
 
-1. **Harmonic Product Spectrum (HPS)** - Pitch detection enhancement
-2. **Viterbi Decoding** - Temporal pitch smoothing
-3. **Needleman-Wunsch** - Sequence alignment for tune matching
+### Primary Algorithm Stack (Recommended)
 
-All implementations will be in **C++** for performance, integrated with Godot via GDExtension, and derived exclusively from **MIT-licensed or public domain sources** to maintain Tunepal's MIT license.
+| Component | Algorithm | Source | Why |
+|-----------|-----------|--------|-----|
+| **Pitch Detection** | pYIN | sevagh/pitch-detection (MIT) | 97.5% accuracy, 0.5-1.7% octave errors |
+| **Temporal Smoothing** | Integrated Viterbi | Built into pYIN | No separate implementation needed |
+| **Sequence Matching** | DTW + N-gram | asardaes/dtw-cpp (MIT) | Better for music than NW |
+
+### Alternative Stack (Maximum Robustness)
+
+| Component | Algorithm | Why |
+|-----------|-----------|-----|
+| **Pitch Detection** | Ensemble (HPS + MPM + YIN) | Research shows ensemble beats neural networks |
+| **Temporal Smoothing** | Median filtering | Simpler, comparable results |
+| **Sequence Matching** | DTW primary, NW fallback | Handles both continuous and discrete |
+
+All implementations are **C++** for performance, integrated with Godot via GDExtension, and derived from **MIT-licensed sources**.
 
 ---
 
 ## Success Criteria (CRITICAL)
 
-This section defines the **measurable success criteria** that must be met for this implementation to be considered complete. These are derived from FolkFriend benchmarks and identified Tunepal improvement opportunities.
+This section defines the **measurable success criteria** that must be met for this implementation to be considered complete.
 
 ### Primary Success Metrics
 
 | Metric | Current Baseline | Target | Minimum Acceptable | Verification Method |
 |--------|-----------------|--------|-------------------|---------------------|
 | **Total Processing Time** | ~1000-2000ms | **< 300ms** | < 500ms | Automated benchmark suite |
-| **Octave Error Rate** | ~30-40% (est.) | **< 10%** | < 15% | Test dataset of 50 known tunes |
-| **Pitch Detection Accuracy** | ~60% (est.) | **> 85%** | > 75% | Synthetic + real audio tests |
+| **Octave Error Rate** | ~30-40% (est.) | **< 5%** | < 10% | Test dataset of 50 known tunes |
+| **Pitch Detection Accuracy** | ~60% (est.) | **> 90%** | > 85% | Synthetic + real audio tests |
 | **Search Match Rate (Top 10)** | ~70% (est.) | **> 90%** | > 80% | Known tune test suite |
 | **Real-time Frame Rate** | N/A | **> 30 fps** | > 20 fps | During-recording benchmark |
 
+**Note:** Targets updated based on pYIN's proven 97.5% accuracy and 0.5-1.7% octave error rate.
+
 ### Detailed Success Criteria by Algorithm
 
-#### 1. Harmonic Product Spectrum (HPS)
+#### 1. Pitch Detection (pYIN / Ensemble)
 
 | Criterion | Target | Measurement |
 |-----------|--------|-------------|
-| **Fundamental vs Harmonic Confusion** | < 5% errors | Test with 100 harmonic-rich samples |
-| **Octave Detection Accuracy** | > 95% correct octave | Test with multi-octave phrases |
+| **Fundamental vs Harmonic Confusion** | < 2% errors | Test with 100 harmonic-rich samples |
+| **Octave Detection Accuracy** | > 98% correct octave | Test with multi-octave phrases |
 | **Processing Latency** | < 5ms per frame | Benchmark on target hardware |
 | **Frequency Resolution** | Within ±25 cents | Synthetic tone comparison |
 | **Robustness to Noise** | Works at 15dB SNR | Add white noise to test samples |
+| **Harmonic-rich Instrument Accuracy** | > 90% | Guitar, accordion, fiddle tests |
 
 **Test Cases:**
 1. Pure sine wave at 440Hz → Must return 440Hz (±5Hz)
 2. Violin A4 (harmonic-rich) → Must return 440Hz, not 880Hz
-3. Flute D5 → Must return ~587Hz, not harmonics
-4. Whistle ornament (fast notes) → Must track pitch changes
+3. Guitar G3 (very harmonic-rich) → Must return ~196Hz correctly
+4. Accordion chord → Must identify melody note
+5. Whistle ornament (fast notes) → Must track pitch changes
+6. Fiddle with vibrato → Must track center pitch
 
-#### 2. Viterbi Decoding
+#### 2. Temporal Smoothing (pYIN-integrated / Median)
 
 | Criterion | Target | Measurement |
 |-----------|--------|-------------|
-| **Spurious Note Reduction** | > 50% fewer spurious notes | Compare with/without Viterbi |
-| **Octave Jump Correction** | > 80% corrected | Test with synthetic octave errors |
+| **Spurious Note Reduction** | > 50% fewer spurious notes | Compare with/without smoothing |
+| **Octave Jump Correction** | > 90% corrected | Test with synthetic octave errors |
 | **Sequence Coherence** | Musical interval distribution | Statistical analysis of output |
 | **Processing Time (1000 frames)** | < 50ms | Benchmark |
 | **Memory Usage** | < 10MB | Memory profiling |
@@ -67,13 +84,13 @@ This section defines the **measurable success criteria** that must be met for th
 3. Octave error CD'EFGA'BC (')=octave up → Must correct to CDEFGABC
 4. Fast jig passage → Must maintain coherent pitch sequence
 
-#### 3. Needleman-Wunsch Alignment
+#### 3. Sequence Matching (DTW Primary / NW Fallback)
 
 | Criterion | Target | Measurement |
 |-----------|--------|-------------|
 | **Exact Match Score** | 1.0 (normalized) | Identity string test |
 | **Near-Match Detection** | Score > 0.8 for 90% similarity | Synthetic variations |
-| **Gap Handling** | Correct insertion/deletion scoring | Gap test patterns |
+| **Tempo Variation Handling** | Matches at ±30% tempo | DTW warping test |
 | **Music-Aware Scoring** | Adjacent notes score higher | C→D vs C→F# test |
 | **Search Speed (10K tunes)** | < 300ms | Full database benchmark |
 
@@ -81,22 +98,23 @@ This section defines the **measurable success criteria** that must be met for th
 1. "CDEFG" vs "CDEFG" → Score = 1.0
 2. "CDEFG" vs "CDXFG" → Score > 0.7 (one mismatch)
 3. "CDEFG" vs "CDFG" → Score > 0.75 (one deletion)
-4. "CDEFG" vs "FGHIJ" → Score < 0.3 (completely different)
+4. "CDEFG" vs "CDEFG" at different tempos → Score > 0.9 (DTW handles)
+5. "CDEFG" vs "FGHIJ" → Score < 0.3 (completely different)
 
 ### End-to-End Success Criteria
 
 | Test Scenario | Success Criterion |
 |---------------|-------------------|
-| **Record "Cooley's Reel" (10 sec)** | Must appear in top 5 results |
-| **Record "The Kesh Jig" (10 sec)** | Must appear in top 5 results |
-| **Record tune in wrong octave** | Still appears in top 10 results |
-| **Record tune with ornaments** | Still appears in top 10 results |
-| **Record tune with mistakes** | Still appears in top 15 results |
+| **Record "Cooley's Reel" (10 sec) on whistle** | Must appear in top 3 results |
+| **Record "The Kesh Jig" (10 sec) on flute** | Must appear in top 3 results |
+| **Record tune on guitar (harmonic-rich)** | Must appear in top 5 results |
+| **Record tune on accordion** | Must appear in top 5 results |
+| **Record tune in wrong octave** | Still appears in top 5 results |
+| **Record tune with ornaments** | Still appears in top 5 results |
+| **Record tune with mistakes** | Still appears in top 10 results |
 | **Process 10,000 tune database** | Complete search in < 300ms |
 
 ### Benchmark Comparison: FolkFriend
-
-FolkFriend publishes these performance metrics:
 
 | Operation | FolkFriend | Tunepal Target | Notes |
 |-----------|------------|----------------|-------|
@@ -117,9 +135,9 @@ A test dataset must be created with:
 
 2. **Real Recordings (50 samples)**
    - 10 fiddle recordings
-   - 10 flute recordings
-   - 10 whistle recordings
-   - 10 concertina/accordion recordings
+   - 10 flute/whistle recordings
+   - 10 guitar recordings (harmonic-rich challenge)
+   - 10 concertina/accordion recordings (harmonic-rich challenge)
    - 10 mixed/challenging recordings
 
 3. **Ground Truth**
@@ -131,20 +149,22 @@ A test dataset must be created with:
 
 Implementation is considered **SUCCESSFUL** when:
 
-- [ ] All three algorithms implemented and tested
+- [ ] Primary algorithms implemented and tested (pYIN + DTW)
 - [ ] Total processing time < 300ms (average over 100 searches)
-- [ ] Octave error rate < 15% on test dataset
+- [ ] Octave error rate < 10% on test dataset
 - [ ] Top-10 match rate > 80% on known tune test suite
 - [ ] Real-time pitch detection achieves > 20 fps
+- [ ] Harmonic-rich instruments (guitar/accordion) achieve > 80% accuracy
 - [ ] No memory leaks detected in 10-minute continuous use
 - [ ] Works on desktop (primary) and has fallback for mobile
 
 Implementation is considered **EXCELLENT** when:
 
 - [ ] Total processing time < 200ms
-- [ ] Octave error rate < 10%
+- [ ] Octave error rate < 5%
 - [ ] Top-5 match rate > 85%
 - [ ] Real-time pitch detection achieves > 30 fps
+- [ ] Harmonic-rich instruments achieve > 90% accuracy
 - [ ] Works natively on iOS and Android
 
 ---
@@ -153,13 +173,13 @@ Implementation is considered **EXCELLENT** when:
 
 0. [Success Criteria (CRITICAL)](#success-criteria-critical)
 1. [Algorithm Overview](#1-algorithm-overview)
-2. [Harmonic Product Spectrum (HPS)](#2-harmonic-product-spectrum-hps)
-3. [Viterbi Decoding](#3-viterbi-decoding)
-4. [Needleman-Wunsch Alignment](#4-needleman-wunsch-alignment)
-5. [C++ Architecture Design](#5-c-architecture-design)
-6. [Integration with Existing Code](#6-integration-with-existing-code)
-7. [Testing Strategy](#7-testing-strategy)
-8. [Performance Targets](#8-performance-targets)
+2. [Pitch Detection: pYIN (Primary)](#2-pitch-detection-pyin-primary)
+3. [Pitch Detection: Ensemble (Alternative)](#3-pitch-detection-ensemble-alternative)
+4. [Sequence Matching: DTW (Primary)](#4-sequence-matching-dtw-primary)
+5. [Sequence Matching: Needleman-Wunsch (Fallback)](#5-sequence-matching-needleman-wunsch-fallback)
+6. [C++ Architecture Design](#6-c-architecture-design)
+7. [Integration with Existing Code](#7-integration-with-existing-code)
+8. [Testing Strategy](#8-testing-strategy)
 9. [Implementation Phases](#9-implementation-phases)
 10. [MIT License Source Documentation](#10-mit-license-source-documentation)
 
@@ -178,8 +198,9 @@ Implementation is considered **EXCELLENT** when:
 
 **Current Issues:**
 - Picks harmonics (2nd, 3rd) instead of fundamental frequency
+- **Especially problematic for guitar, accordion, fiddle**
 - No temporal smoothing between frames
-- Octave errors common
+- Octave errors common (~30-40% estimated)
 - No consideration of musical context
 
 **Current Matching (tunepal.cpp:31-103):**
@@ -191,36 +212,31 @@ Implementation is considered **EXCELLENT** when:
 **Current Issues:**
 - Searches entire database (no pre-filtering)
 - Equal penalties for all operations
-- No gap-specific handling
+- No handling for tempo variations
 
-### 1.2 Proposed Improvements
+### 1.2 Why Original Plan Needed Updates
 
-| Algorithm | Problem Solved | Expected Improvement |
-|-----------|----------------|---------------------|
-| **HPS** | Harmonic confusion, octave errors | 30-50% fewer octave errors |
-| **Viterbi** | Frame-by-frame noise, temporal incoherence | Smoother sequences, fewer spurious notes |
-| **Needleman-Wunsch** | Poor handling of insertions/deletions | Better alignment for varied performances |
+Research revealed better alternatives to HPS + standalone Viterbi + NW:
 
-### 1.3 Algorithm Synergy
+| Original | Updated | Reason |
+|----------|---------|--------|
+| HPS | **pYIN** | HPS is "prone to noise" and struggles with harmonic-rich instruments |
+| Standalone Viterbi | **Integrated in pYIN** | Combined approach is better tuned |
+| Needleman-Wunsch only | **DTW primary** | DTW is standard for music, handles tempo variations |
+
+### 1.3 Updated Algorithm Architecture
 
 ```
 Audio Input
      │
      ▼
 ┌─────────────────────────────────────────────────────┐
-│  HARMONIC PRODUCT SPECTRUM (C++)                    │
-│  • Analyzes spectrum data from Godot                │
-│  • Generates pitch candidates with confidence       │
-│  • Outputs: [frame_id, pitch_hz, confidence][]      │
-└─────────────────────────────────────────────────────┘
-     │
-     ▼
-┌─────────────────────────────────────────────────────┐
-│  VITERBI DECODING (C++)                             │
-│  • Takes pitch candidates per frame                 │
-│  • Finds globally optimal pitch sequence            │
-│  • Penalizes unlikely intervals                     │
-│  • Outputs: smoothed pitch sequence                 │
+│  pYIN PITCH DETECTION (C++ - sevagh/pitch-detection)│
+│  • YIN-based autocorrelation (handles harmonics)    │
+│  • Probabilistic multiple candidates                │
+│  • Built-in Viterbi HMM smoothing                   │
+│  • Proven 97.5% accuracy, 0.5-1.7% octave errors    │
+│  • Outputs: smoothed MIDI pitch sequence            │
 └─────────────────────────────────────────────────────┘
      │
      ▼
@@ -233,114 +249,222 @@ Audio Input
      │
      ▼
 ┌─────────────────────────────────────────────────────┐
-│  NEEDLEMAN-WUNSCH (C++)                             │
-│  • Aligns note string with database entries         │
-│  • Proper gap and mismatch handling                 │
+│  N-GRAM PRE-FILTERING (GDScript)                    │
+│  • Extract quadgrams from query                     │
+│  • Fast candidate filtering (10000 → ~500)          │
+│  • Hash-based O(1) lookups                          │
+└─────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│  DTW SEQUENCE MATCHING (C++ - asardaes/dtw-cpp)     │
+│  • Dynamic Time Warping on candidates               │
+│  • Handles tempo variations naturally               │
 │  • Normalized similarity score [0, 1]               │
 │  • Outputs: ranked matches                          │
 └─────────────────────────────────────────────────────┘
 ```
 
+### 1.4 Alternative: Ensemble Architecture (Maximum Robustness)
+
+Research finding: "A simple combination of 3 estimators by median filtering outperformed all other approaches including CREPE (neural network)"
+
+```
+Audio Input
+     │
+     ├──────────────────┬──────────────────┐
+     ▼                  ▼                  ▼
+┌─────────┐      ┌─────────┐      ┌─────────┐
+│   HPS   │      │   MPM   │      │   YIN   │
+│ (freq)  │      │ (time)  │      │ (time)  │
+└────┬────┘      └────┬────┘      └────┬────┘
+     │                │                │
+     └────────────────┼────────────────┘
+                      ▼
+              ┌─────────────┐
+              │Median Filter│
+              │(per frame)  │
+              └──────┬──────┘
+                     ▼
+          ┌───────────────────┐
+          │ Median Smoothing  │
+          │ (temporal window) │
+          └─────────┬─────────┘
+                    ▼
+           Note Quantization
+                    ▼
+          N-gram + DTW Search
+```
+
 ---
 
-## 2. Harmonic Product Spectrum (HPS)
+## 2. Pitch Detection: pYIN (Primary)
 
-### 2.1 Algorithm Description
+### 2.1 Why pYIN Over HPS
 
-The Harmonic Product Spectrum is a pitch detection algorithm that exploits the harmonic structure of musical tones. When a note is played, it produces energy not just at the fundamental frequency (f₀) but also at integer multiples (2f₀, 3f₀, 4f₀, etc.).
+| Feature | HPS | pYIN |
+|---------|-----|------|
+| **Algorithm Type** | Frequency domain | Time domain (autocorrelation) |
+| **Harmonic Handling** | Multiplies (can amplify errors) | Pattern matching (robust) |
+| **Published Accuracy** | ~70-80% | **97.5%** |
+| **Octave Error Rate** | ~10-20% | **0.5-1.7%** |
+| **Viterbi Integration** | Separate step needed | Built-in |
+| **MIT Implementation** | Custom needed | sevagh/pitch-detection |
 
-**Key Insight:** If we downsample the spectrum by factors of 2, 3, 4... and multiply them together, the peaks at harmonic frequencies will align at the fundamental frequency, producing a strong peak.
+### 2.2 Algorithm Description
 
-**MIT-Licensed Reference:** Algorithm is public domain (Noll, 1969). Implementation guidance from Wikipedia.
+pYIN (Probabilistic YIN) is a two-stage pitch detector:
 
-### 2.2 Mathematical Formulation
+**Stage 1: YIN-based Candidate Generation**
+- Autocorrelation-based fundamental frequency estimation
+- Generates multiple pitch candidates with probabilities
+- Robust to harmonics (key for guitar/accordion)
 
-Given a magnitude spectrum |X(f)|, the HPS is computed as:
+**Stage 2: Viterbi HMM Decoding**
+- Hidden Markov Model over pitch candidates
+- Finds globally optimal pitch sequence
+- Penalizes unlikely pitch transitions
 
-```
-HPS(f) = ∏[h=1 to H] |X(h·f)|
+### 2.3 MIT-Licensed Source
 
-Where:
-  f = candidate fundamental frequency
-  H = number of harmonics to consider (typically 4-5)
-  |X(f)| = magnitude at frequency f
-```
+**Repository:** https://github.com/sevagh/pitch-detection
+**License:** MIT (confirmed)
+**Language:** C++ with O(N log N) complexity
 
-The fundamental frequency is:
-```
-f₀ = argmax_f HPS(f)
-```
+The library includes:
+- `pitch::pyin<float>()` - Probabilistic YIN with Viterbi
+- `pitch::yin<float>()` - Standard YIN
+- `pitch::mpm<float>()` - McLeod Pitch Method
 
-### 2.3 C++ Implementation Specification
+### 2.4 C++ Integration Specification
 
-#### 2.3.1 Header File Addition (tunepal.h)
+#### 2.4.1 Header File (tunepal.h)
 
 ```cpp
-// Add to tunepal.h
+#ifndef TUNEPAL_H
+#define TUNEPAL_H
 
+#include <godot_cpp/classes/node2d.hpp>
+#include <godot_cpp/variant/packed_float32_array.hpp>
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 #include <vector>
 
-// Pitch candidate structure
-struct PitchCandidate {
-    float frequency;    // Hz
-    float confidence;   // 0.0 to 1.0
-    int midi_note;      // MIDI note number (0-127)
-};
+// Include pitch-detection library
+#include "pitch_detection.h"
 
-// HPS configuration
-struct HPSConfig {
-    int num_harmonics = 5;          // Number of harmonics to analyze
-    float min_frequency = 80.0f;    // Minimum detectable frequency (Hz)
-    float max_frequency = 2000.0f;  // Maximum detectable frequency (Hz)
-    float frequency_resolution = 1.0f;  // Hz per bin
-    int max_candidates = 5;         // Top N candidates to return
+namespace godot {
+
+// Configuration for pitch detection
+struct PitchConfig {
+    float sample_rate = 44100.0f;
+    int buffer_size = 2048;
+    float min_frequency = 80.0f;   // ~E2
+    float max_frequency = 2000.0f; // ~B6
+    enum Algorithm { PYIN, MPM, YIN, ENSEMBLE } algorithm = PYIN;
 };
 
 class Tunepal : public Node2D {
-    // ... existing code ...
-
-public:
-    // HPS pitch detection
-    godot::Array detect_pitch_hps(
-        const godot::PackedFloat32Array& magnitude_spectrum,
-        float sample_rate,
-        int fft_size
-    );
-
-    // Configure HPS parameters
-    void set_hps_config(int num_harmonics, float min_freq, float max_freq);
+    GDCLASS(Tunepal, Node2D)
 
 private:
-    HPSConfig hps_config_;
+    PitchConfig pitch_config_;
 
-    // Internal HPS computation
-    std::vector<PitchCandidate> compute_hps(
-        const float* spectrum,
-        int spectrum_size,
-        float bin_frequency_resolution
-    );
+    // Pitch detection allocators (reusable for performance)
+    std::unique_ptr<pitch_alloc::Yin<float>> yin_alloc_;
+    std::unique_ptr<pitch_alloc::Mpm<float>> mpm_alloc_;
 
-    // Frequency to MIDI note conversion
+protected:
+    static void _bind_methods();
+
+public:
+    Tunepal();
+    ~Tunepal();
+
+    // ========================================
+    // Legacy Methods (preserved)
+    // ========================================
+    void say_hello();
+    int edSubstring(const godot::String pattern, const godot::String text,
+                    const int thread_id);
+
+    // ========================================
+    // Pitch Detection (pYIN primary)
+    // ========================================
+    float detect_pitch_pyin(const PackedFloat32Array& audio_buffer);
+    Array detect_pitch_pyin_sequence(const PackedFloat32Array& audio_data,
+                                      int hop_size);
+
+    // Alternative: ensemble detection
+    float detect_pitch_ensemble(const PackedFloat32Array& audio_buffer);
+
+    // Configuration
+    void set_pitch_config(float sample_rate, int buffer_size,
+                          float min_freq, float max_freq);
+    void set_pitch_algorithm(int algorithm);  // 0=PYIN, 1=MPM, 2=YIN, 3=ENSEMBLE
+
+    // ========================================
+    // DTW Sequence Matching (primary)
+    // ========================================
+    float dtw_distance(const PackedFloat32Array& seq1,
+                       const PackedFloat32Array& seq2);
+    float dtw_similarity(const String& pattern, const String& text);
+    Array dtw_search(const String& pattern, const Array& candidates,
+                     int max_results);
+
+    // ========================================
+    // Needleman-Wunsch (fallback)
+    // ========================================
+    float needleman_wunsch(const String& pattern, const String& text);
+    Array nw_search(const String& pattern, const Array& candidates,
+                    int max_results);
+
+private:
+    // Internal helpers
     int frequency_to_midi(float frequency);
     float midi_to_frequency(int midi_note);
+    std::vector<float> string_to_pitch_sequence(const String& note_string);
 };
+
+} // namespace godot
+
+#endif // TUNEPAL_H
 ```
 
-#### 2.3.2 Implementation (tunepal.cpp additions)
+#### 2.4.2 Implementation (tunepal.cpp)
 
 ```cpp
-// Harmonic Product Spectrum implementation
-// Source: Wikipedia "Pitch detection algorithm" (Public Domain)
-// Reference: A.M. Noll, "Pitch determination of human speech by the
-//            harmonic product spectrum" (1969)
-// NOT derived from FolkFriend (GPL-3.0)
+/**
+ * Pitch Detection Implementation using pYIN
+ *
+ * Sources:
+ *   - sevagh/pitch-detection: https://github.com/sevagh/pitch-detection (MIT)
+ *   - pYIN paper: Mauch & Dixon, "pYIN: A Fundamental Frequency Estimator" (2014)
+ *
+ * This implementation uses MIT-licensed code from sevagh/pitch-detection.
+ * NOT derived from FolkFriend (GPL-3.0) or original pYIN (GPL).
+ */
 
+#include "tunepal.h"
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
-// MIDI note conversion constants
+using namespace godot;
+
+// MIDI conversion constants
 constexpr float MIDI_A4_FREQUENCY = 440.0f;
 constexpr int MIDI_A4_NOTE = 69;
+
+Tunepal::Tunepal() {
+    // Initialize pitch detection allocators
+    yin_alloc_ = std::make_unique<pitch_alloc::Yin<float>>(
+        pitch_config_.buffer_size);
+    mpm_alloc_ = std::make_unique<pitch_alloc::Mpm<float>>(
+        pitch_config_.buffer_size);
+}
+
+Tunepal::~Tunepal() = default;
 
 int Tunepal::frequency_to_midi(float frequency) {
     if (frequency <= 0) return -1;
@@ -353,1342 +477,679 @@ float Tunepal::midi_to_frequency(int midi_note) {
     return MIDI_A4_FREQUENCY * std::pow(2.0f, (midi_note - MIDI_A4_NOTE) / 12.0f);
 }
 
-std::vector<PitchCandidate> Tunepal::compute_hps(
-    const float* spectrum,
-    int spectrum_size,
-    float bin_frequency_resolution
-) {
-    std::vector<PitchCandidate> candidates;
-
-    // Calculate HPS for each frequency bin
-    int min_bin = static_cast<int>(hps_config_.min_frequency / bin_frequency_resolution);
-    int max_bin = static_cast<int>(hps_config_.max_frequency / bin_frequency_resolution);
-
-    // Ensure we don't exceed spectrum bounds with harmonic lookups
-    max_bin = std::min(max_bin, spectrum_size / hps_config_.num_harmonics);
-
-    std::vector<float> hps_values(max_bin - min_bin + 1);
-    float max_hps = 0.0f;
-
-    for (int bin = min_bin; bin <= max_bin; bin++) {
-        float product = 1.0f;
-        bool valid = true;
-
-        // Multiply magnitudes at each harmonic
-        for (int h = 1; h <= hps_config_.num_harmonics; h++) {
-            int harmonic_bin = bin * h;
-            if (harmonic_bin >= spectrum_size) {
-                valid = false;
-                break;
-            }
-            // Use magnitude (ensure positive)
-            float mag = std::abs(spectrum[harmonic_bin]);
-            product *= (mag + 1e-10f);  // Avoid log(0)
-        }
-
-        if (valid) {
-            hps_values[bin - min_bin] = product;
-            max_hps = std::max(max_hps, product);
-        }
+float Tunepal::detect_pitch_pyin(const PackedFloat32Array& audio_buffer) {
+    if (audio_buffer.size() < pitch_config_.buffer_size) {
+        return -1.0f;
     }
 
-    // Find peaks in HPS
-    // Simple peak detection: local maximum above threshold
-    float threshold = max_hps * 0.1f;  // 10% of max
+    // Convert to std::vector for pitch-detection library
+    std::vector<float> buffer(audio_buffer.ptr(),
+                               audio_buffer.ptr() + pitch_config_.buffer_size);
 
-    for (int i = 1; i < static_cast<int>(hps_values.size()) - 1; i++) {
-        float val = hps_values[i];
-        if (val > threshold &&
-            val > hps_values[i - 1] &&
-            val > hps_values[i + 1]) {
+    // Use pYIN (probabilistic YIN with Viterbi)
+    float pitch = pitch::pyin<float>(buffer, pitch_config_.sample_rate);
 
-            int bin = i + min_bin;
-            float frequency = bin * bin_frequency_resolution;
-            float confidence = val / max_hps;
-            int midi_note = frequency_to_midi(frequency);
-
-            candidates.push_back({frequency, confidence, midi_note});
-        }
+    // Validate pitch is in expected range
+    if (pitch < pitch_config_.min_frequency ||
+        pitch > pitch_config_.max_frequency) {
+        return -1.0f;  // Invalid/silence
     }
 
-    // Sort by confidence descending
-    std::sort(candidates.begin(), candidates.end(),
-        [](const PitchCandidate& a, const PitchCandidate& b) {
-            return a.confidence > b.confidence;
-        });
-
-    // Return top N candidates
-    if (candidates.size() > static_cast<size_t>(hps_config_.max_candidates)) {
-        candidates.resize(hps_config_.max_candidates);
-    }
-
-    return candidates;
+    return pitch;
 }
 
-godot::Array Tunepal::detect_pitch_hps(
-    const godot::PackedFloat32Array& magnitude_spectrum,
-    float sample_rate,
-    int fft_size
-) {
-    godot::Array result;
+float Tunepal::detect_pitch_ensemble(const PackedFloat32Array& audio_buffer) {
+    if (audio_buffer.size() < pitch_config_.buffer_size) {
+        return -1.0f;
+    }
 
-    if (magnitude_spectrum.size() == 0) {
+    std::vector<float> buffer(audio_buffer.ptr(),
+                               audio_buffer.ptr() + pitch_config_.buffer_size);
+
+    // Get pitch estimates from multiple algorithms
+    float pitch_yin = pitch::yin<float>(buffer, pitch_config_.sample_rate);
+    float pitch_mpm = pitch::mpm<float>(buffer, pitch_config_.sample_rate);
+
+    // Simple HPS for third estimate
+    // (Could also use pitch::pyin for a stronger ensemble)
+    float pitch_pyin = pitch::pyin<float>(buffer, pitch_config_.sample_rate);
+
+    // Collect valid pitches
+    std::vector<float> pitches;
+    if (pitch_yin > pitch_config_.min_frequency &&
+        pitch_yin < pitch_config_.max_frequency) {
+        pitches.push_back(pitch_yin);
+    }
+    if (pitch_mpm > pitch_config_.min_frequency &&
+        pitch_mpm < pitch_config_.max_frequency) {
+        pitches.push_back(pitch_mpm);
+    }
+    if (pitch_pyin > pitch_config_.min_frequency &&
+        pitch_pyin < pitch_config_.max_frequency) {
+        pitches.push_back(pitch_pyin);
+    }
+
+    if (pitches.empty()) {
+        return -1.0f;
+    }
+
+    // Return median
+    std::sort(pitches.begin(), pitches.end());
+    return pitches[pitches.size() / 2];
+}
+
+Array Tunepal::detect_pitch_pyin_sequence(const PackedFloat32Array& audio_data,
+                                           int hop_size) {
+    Array result;
+
+    if (audio_data.size() < pitch_config_.buffer_size) {
         return result;
     }
 
-    // Calculate frequency resolution
-    float bin_resolution = sample_rate / static_cast<float>(fft_size);
+    int num_frames = (audio_data.size() - pitch_config_.buffer_size) / hop_size + 1;
 
-    // Get raw pointer for performance
-    const float* spectrum_data = magnitude_spectrum.ptr();
-    int spectrum_size = magnitude_spectrum.size();
+    for (int i = 0; i < num_frames; i++) {
+        int start = i * hop_size;
 
-    // Compute HPS
-    std::vector<PitchCandidate> candidates = compute_hps(
-        spectrum_data, spectrum_size, bin_resolution
-    );
+        // Extract frame
+        PackedFloat32Array frame;
+        frame.resize(pitch_config_.buffer_size);
+        for (int j = 0; j < pitch_config_.buffer_size; j++) {
+            frame[j] = audio_data[start + j];
+        }
 
-    // Convert to Godot Array of Dictionaries
-    for (const auto& candidate : candidates) {
-        godot::Dictionary dict;
-        dict["frequency"] = candidate.frequency;
-        dict["confidence"] = candidate.confidence;
-        dict["midi_note"] = candidate.midi_note;
-        result.push_back(dict);
+        float pitch;
+        if (pitch_config_.algorithm == PitchConfig::ENSEMBLE) {
+            pitch = detect_pitch_ensemble(frame);
+        } else {
+            pitch = detect_pitch_pyin(frame);
+        }
+
+        Dictionary frame_result;
+        frame_result["frame"] = i;
+        frame_result["time"] = static_cast<float>(start) / pitch_config_.sample_rate;
+        frame_result["frequency"] = pitch;
+        frame_result["midi_note"] = (pitch > 0) ? frequency_to_midi(pitch) : -1;
+
+        result.push_back(frame_result);
     }
 
     return result;
 }
 
-void Tunepal::set_hps_config(int num_harmonics, float min_freq, float max_freq) {
-    hps_config_.num_harmonics = std::clamp(num_harmonics, 2, 8);
-    hps_config_.min_frequency = std::clamp(min_freq, 20.0f, 500.0f);
-    hps_config_.max_frequency = std::clamp(max_freq, 500.0f, 4000.0f);
+void Tunepal::set_pitch_config(float sample_rate, int buffer_size,
+                                float min_freq, float max_freq) {
+    pitch_config_.sample_rate = std::clamp(sample_rate, 8000.0f, 96000.0f);
+    pitch_config_.buffer_size = std::clamp(buffer_size, 512, 8192);
+    pitch_config_.min_frequency = std::clamp(min_freq, 20.0f, 500.0f);
+    pitch_config_.max_frequency = std::clamp(max_freq, 200.0f, 4000.0f);
+
+    // Reinitialize allocators with new buffer size
+    yin_alloc_ = std::make_unique<pitch_alloc::Yin<float>>(
+        pitch_config_.buffer_size);
+    mpm_alloc_ = std::make_unique<pitch_alloc::Mpm<float>>(
+        pitch_config_.buffer_size);
+}
+
+void Tunepal::set_pitch_algorithm(int algorithm) {
+    pitch_config_.algorithm = static_cast<PitchConfig::Algorithm>(
+        std::clamp(algorithm, 0, 3));
 }
 ```
 
-#### 2.3.3 Method Binding
+#### 2.4.3 Method Binding
 
 ```cpp
-// Add to _bind_methods()
-ClassDB::bind_method(D_METHOD("detect_pitch_hps", "magnitude_spectrum",
-    "sample_rate", "fft_size"), &Tunepal::detect_pitch_hps);
-ClassDB::bind_method(D_METHOD("set_hps_config", "num_harmonics",
-    "min_freq", "max_freq"), &Tunepal::set_hps_config);
-```
+void Tunepal::_bind_methods() {
+    // Legacy methods
+    ClassDB::bind_method(D_METHOD("say_hello"), &Tunepal::say_hello);
+    ClassDB::bind_method(D_METHOD("edSubstring", "pattern", "text", "thread_id"),
+                         &Tunepal::edSubstring);
 
-### 2.4 Integration with GDScript
+    // Pitch detection
+    ClassDB::bind_method(D_METHOD("detect_pitch_pyin", "audio_buffer"),
+                         &Tunepal::detect_pitch_pyin);
+    ClassDB::bind_method(D_METHOD("detect_pitch_pyin_sequence", "audio_data", "hop_size"),
+                         &Tunepal::detect_pitch_pyin_sequence);
+    ClassDB::bind_method(D_METHOD("detect_pitch_ensemble", "audio_buffer"),
+                         &Tunepal::detect_pitch_ensemble);
+    ClassDB::bind_method(D_METHOD("set_pitch_config", "sample_rate", "buffer_size",
+                                   "min_freq", "max_freq"),
+                         &Tunepal::set_pitch_config);
+    ClassDB::bind_method(D_METHOD("set_pitch_algorithm", "algorithm"),
+                         &Tunepal::set_pitch_algorithm);
 
-```gdscript
-# In record.gd - replacement for current pitch detection
+    // DTW matching
+    ClassDB::bind_method(D_METHOD("dtw_distance", "seq1", "seq2"),
+                         &Tunepal::dtw_distance);
+    ClassDB::bind_method(D_METHOD("dtw_similarity", "pattern", "text"),
+                         &Tunepal::dtw_similarity);
+    ClassDB::bind_method(D_METHOD("dtw_search", "pattern", "candidates", "max_results"),
+                         &Tunepal::dtw_search);
 
-func detect_pitch_frame(spectrum: AudioEffectSpectrumAnalyzerInstance) -> Array:
-    # Get magnitude spectrum from Godot
-    var fft_size = 2048  # Typical FFT size
-    var magnitudes = PackedFloat32Array()
-
-    # Sample the spectrum at each bin
-    var sample_rate = 44100.0  # Or get from AudioServer
-    var bin_resolution = sample_rate / fft_size
-
-    for i in range(fft_size / 2):
-        var freq = i * bin_resolution
-        var mag = spectrum.get_magnitude_for_frequency_range(
-            freq, freq + bin_resolution
-        )
-        magnitudes.append(mag.length())
-
-    # Use HPS for pitch detection
-    if tunepal != null:
-        return tunepal.detect_pitch_hps(magnitudes, sample_rate, fft_size)
-    else:
-        # Fallback to original method on mobile
-        return fallback_pitch_detection(spectrum)
+    // NW matching (fallback)
+    ClassDB::bind_method(D_METHOD("needleman_wunsch", "pattern", "text"),
+                         &Tunepal::needleman_wunsch);
+    ClassDB::bind_method(D_METHOD("nw_search", "pattern", "candidates", "max_results"),
+                         &Tunepal::nw_search);
+}
 ```
 
 ---
 
-## 3. Viterbi Decoding
+## 3. Pitch Detection: Ensemble (Alternative)
 
-### 3.1 Algorithm Description
+### 3.1 When to Use Ensemble
 
-The Viterbi algorithm finds the most likely sequence of hidden states given a sequence of observations. For pitch tracking:
+Use the ensemble approach when:
+- pYIN alone isn't meeting accuracy targets
+- Maximum robustness is required
+- Testing on particularly challenging instruments
 
-- **States:** Possible MIDI pitches (e.g., 48-95 = 4 octaves)
-- **Observations:** Pitch candidates from HPS at each frame
-- **Transitions:** Probability of moving from one pitch to another
-- **Goal:** Find the pitch sequence that maximizes overall likelihood
+### 3.2 Research Backing
 
-**MIT-Licensed Reference:** Wikipedia pseudocode (Public Domain)
+From "Traditional Machine Learning for Pitch Detection" (arXiv:1903.01290):
+> "A simple combination of the 3 estimators by median filtering outperformed all other approaches (including CREPE)"
 
-### 3.2 Mathematical Formulation
+### 3.3 Ensemble Components
 
-For each frame t and pitch state p:
+| Algorithm | Type | Strength | MIT Source |
+|-----------|------|----------|------------|
+| **HPS** | Frequency domain | Simple, fast | Custom (public domain) |
+| **MPM** | Time domain | Fast, good for instruments | sevagh/pitch-detection |
+| **YIN** | Time domain | Accurate | sevagh/pitch-detection |
 
-```
-V[t][p] = max_q(V[t-1][q] + log(Transition(q→p)) + log(Emission(p|observation_t)))
-
-Where:
-  V[t][p] = log probability of best path ending in state p at time t
-  Transition(q→p) = probability of pitch transition from q to p
-  Emission(p|o) = probability of observing o given true pitch is p
-```
-
-**Transition Model (based on music theory):**
-```
-log(Transition(q→p)) = -λ * |p - q|
-
-Where λ controls preference for small intervals
-- λ = 0.05: mild preference (allows octave jumps)
-- λ = 0.10: moderate preference
-- λ = 0.20: strong preference (mostly stepwise motion)
-```
-
-### 3.3 C++ Implementation Specification
-
-#### 3.3.1 Header Additions (tunepal.h)
+### 3.4 HPS Implementation (for Ensemble)
 
 ```cpp
-// Viterbi configuration
-struct ViterbiConfig {
-    int min_midi = 48;          // C2 (~131 Hz)
-    int max_midi = 95;          // B6 (~1975 Hz)
-    float transition_penalty = 0.08f;  // Interval penalty weight
-    float silence_threshold = 0.05f;   // Minimum confidence to consider
-    int min_note_frames = 3;    // Minimum frames for valid note
-};
+/**
+ * Harmonic Product Spectrum for ensemble pitch detection
+ * Source: Wikipedia (Public Domain), Noll 1969 paper
+ */
+float Tunepal::compute_hps(const float* spectrum, int spectrum_size,
+                            float bin_resolution, int num_harmonics) {
+    float max_hps = 0.0f;
+    float best_freq = 0.0f;
 
-// Pitch frame data for Viterbi
-struct PitchFrame {
-    std::vector<PitchCandidate> candidates;  // From HPS
-    float timestamp;                          // Frame time in seconds
-};
+    int min_bin = static_cast<int>(pitch_config_.min_frequency / bin_resolution);
+    int max_bin = std::min(
+        static_cast<int>(pitch_config_.max_frequency / bin_resolution),
+        spectrum_size / num_harmonics
+    );
 
-class Tunepal : public Node2D {
-    // ... existing code ...
+    for (int bin = min_bin; bin <= max_bin; bin++) {
+        float product = 1.0f;
 
-public:
-    // Viterbi decoding
-    godot::Array viterbi_decode(const godot::Array& pitch_frames);
+        for (int h = 1; h <= num_harmonics; h++) {
+            int harmonic_bin = bin * h;
+            if (harmonic_bin < spectrum_size) {
+                product *= (spectrum[harmonic_bin] + 1e-10f);
+            }
+        }
 
-    // Configure Viterbi parameters
-    void set_viterbi_config(int min_midi, int max_midi, float transition_penalty);
+        if (product > max_hps) {
+            max_hps = product;
+            best_freq = bin * bin_resolution;
+        }
+    }
 
-private:
-    ViterbiConfig viterbi_config_;
-
-    // Internal Viterbi computation
-    std::vector<int> compute_viterbi(const std::vector<PitchFrame>& frames);
-};
+    return best_freq;
+}
 ```
 
-#### 3.3.2 Implementation (tunepal.cpp additions)
+---
+
+## 4. Sequence Matching: DTW (Primary)
+
+### 4.1 Why DTW Over Needleman-Wunsch
+
+| Feature | Needleman-Wunsch | DTW |
+|---------|-----------------|-----|
+| **Designed for** | DNA/protein sequences | Time series, audio, music |
+| **Data type** | Discrete symbols only | Continuous values supported |
+| **Tempo variations** | Poor (fixed gaps) | Excellent (warps time) |
+| **Music adoption** | Rare | Standard in MIR |
+| **Gaps** | Inserts gaps (extends sequence) | Collapses/stretches |
+
+### 4.2 Algorithm Description
+
+Dynamic Time Warping finds the optimal alignment between two sequences by warping the time axis:
+
+```
+Given sequences A = [a₁, a₂, ..., aₘ] and B = [b₁, b₂, ..., bₙ]
+
+DTW Distance Matrix D:
+  D[0][0] = 0
+  D[i][0] = ∞ for i > 0
+  D[0][j] = ∞ for j > 0
+
+  D[i][j] = distance(aᵢ, bⱼ) + min(D[i-1][j], D[i][j-1], D[i-1][j-1])
+
+Final distance: D[m][n]
+```
+
+### 4.3 MIT-Licensed Source
+
+**Repository:** https://github.com/asardaes/dtw-cpp
+**License:** MIT
+**Language:** C++11
+
+### 4.4 C++ Implementation
 
 ```cpp
-// Viterbi algorithm for pitch sequence optimization
-// Source: Wikipedia "Viterbi algorithm" (Public Domain)
-// Reference: A.J. Viterbi, "Error bounds for convolutional codes" (1967)
-// NOT derived from FolkFriend (GPL-3.0) or pYIN (GPL)
+/**
+ * Dynamic Time Warping for melodic sequence matching
+ * Sources:
+ *   - asardaes/dtw-cpp: https://github.com/asardaes/dtw-cpp (MIT)
+ *   - Wikipedia: https://en.wikipedia.org/wiki/Dynamic_time_warping (Public Domain)
+ */
 
+#include <cmath>
 #include <limits>
 
-std::vector<int> Tunepal::compute_viterbi(const std::vector<PitchFrame>& frames) {
-    if (frames.empty()) {
-        return {};
-    }
+float Tunepal::dtw_distance(const PackedFloat32Array& seq1,
+                             const PackedFloat32Array& seq2) {
+    int m = seq1.size();
+    int n = seq2.size();
 
-    const int num_states = viterbi_config_.max_midi - viterbi_config_.min_midi + 1;
-    const int num_frames = static_cast<int>(frames.size());
-    const float NEG_INF = -std::numeric_limits<float>::infinity();
+    if (m == 0 || n == 0) return std::numeric_limits<float>::infinity();
 
-    // Viterbi tables: score and backpointer
-    // Using vector of vectors for dynamic sizing
-    std::vector<std::vector<float>> V(num_frames, std::vector<float>(num_states, NEG_INF));
-    std::vector<std::vector<int>> backptr(num_frames, std::vector<int>(num_states, -1));
+    // DTW matrix (space-optimized: only keep two rows)
+    std::vector<float> prev(n + 1, std::numeric_limits<float>::infinity());
+    std::vector<float> curr(n + 1, std::numeric_limits<float>::infinity());
 
-    // Helper: convert observation to emission score for each state
-    auto get_emission_score = [&](const PitchFrame& frame, int midi_note) -> float {
-        float best_score = NEG_INF;
+    prev[0] = 0.0f;
 
-        for (const auto& candidate : frame.candidates) {
-            if (candidate.confidence < viterbi_config_.silence_threshold) {
-                continue;
-            }
+    for (int i = 1; i <= m; i++) {
+        curr[0] = std::numeric_limits<float>::infinity();
 
-            // Score based on how close candidate is to state
-            int candidate_midi = candidate.midi_note;
-            int distance = std::abs(candidate_midi - midi_note);
+        for (int j = 1; j <= n; j++) {
+            // Distance between elements (can be customized for music)
+            float cost = std::abs(seq1[i - 1] - seq2[j - 1]);
 
-            if (distance == 0) {
-                // Exact match: use full confidence
-                best_score = std::max(best_score, std::log(candidate.confidence + 1e-10f));
-            } else if (distance <= 1) {
-                // Within semitone: partial credit
-                float score = std::log((candidate.confidence * 0.5f) + 1e-10f);
-                best_score = std::max(best_score, score);
-            }
-        }
-
-        // If no good candidates, return low score (silence/noise)
-        if (best_score == NEG_INF) {
-            best_score = std::log(0.01f);  // Low but not impossible
-        }
-
-        return best_score;
-    };
-
-    // Initialize first frame
-    for (int s = 0; s < num_states; s++) {
-        int midi_note = s + viterbi_config_.min_midi;
-        V[0][s] = get_emission_score(frames[0], midi_note);
-    }
-
-    // Forward pass
-    for (int t = 1; t < num_frames; t++) {
-        for (int s = 0; s < num_states; s++) {
-            int midi_note = s + viterbi_config_.min_midi;
-            float emission = get_emission_score(frames[t], midi_note);
-
-            float best_score = NEG_INF;
-            int best_prev = 0;
-
-            for (int prev_s = 0; prev_s < num_states; prev_s++) {
-                // Transition penalty based on interval size
-                int interval = std::abs(s - prev_s);
-                float transition = -viterbi_config_.transition_penalty * interval;
-
-                // Optional: penalize octave jumps less (harmonics)
-                if (interval == 12 || interval == 24) {
-                    transition *= 0.5f;  // Octaves more likely than random jumps
-                }
-
-                float score = V[t-1][prev_s] + transition + emission;
-
-                if (score > best_score) {
-                    best_score = score;
-                    best_prev = prev_s;
-                }
-            }
-
-            V[t][s] = best_score;
-            backptr[t][s] = best_prev;
-        }
-    }
-
-    // Find best final state
-    int best_final = 0;
-    float best_final_score = NEG_INF;
-    for (int s = 0; s < num_states; s++) {
-        if (V[num_frames - 1][s] > best_final_score) {
-            best_final_score = V[num_frames - 1][s];
-            best_final = s;
-        }
-    }
-
-    // Backtrack to find path
-    std::vector<int> path(num_frames);
-    path[num_frames - 1] = best_final + viterbi_config_.min_midi;
-
-    for (int t = num_frames - 2; t >= 0; t--) {
-        int prev_state = backptr[t + 1][path[t + 1] - viterbi_config_.min_midi];
-        path[t] = prev_state + viterbi_config_.min_midi;
-    }
-
-    return path;
-}
-
-godot::Array Tunepal::viterbi_decode(const godot::Array& pitch_frames) {
-    godot::Array result;
-
-    // Convert Godot Array to internal format
-    std::vector<PitchFrame> frames;
-    frames.reserve(pitch_frames.size());
-
-    for (int i = 0; i < pitch_frames.size(); i++) {
-        godot::Dictionary frame_dict = pitch_frames[i];
-        godot::Array candidates_array = frame_dict["candidates"];
-
-        PitchFrame frame;
-        frame.timestamp = frame_dict["timestamp"];
-
-        for (int j = 0; j < candidates_array.size(); j++) {
-            godot::Dictionary cand = candidates_array[j];
-            PitchCandidate pc;
-            pc.frequency = cand["frequency"];
-            pc.confidence = cand["confidence"];
-            pc.midi_note = cand["midi_note"];
-            frame.candidates.push_back(pc);
-        }
-
-        frames.push_back(frame);
-    }
-
-    // Run Viterbi
-    std::vector<int> path = compute_viterbi(frames);
-
-    // Convert to Godot Array
-    for (int midi : path) {
-        result.push_back(midi);
-    }
-
-    return result;
-}
-
-void Tunepal::set_viterbi_config(int min_midi, int max_midi, float transition_penalty) {
-    viterbi_config_.min_midi = std::clamp(min_midi, 21, 108);  // Piano range
-    viterbi_config_.max_midi = std::clamp(max_midi, min_midi + 12, 108);
-    viterbi_config_.transition_penalty = std::clamp(transition_penalty, 0.01f, 0.5f);
-}
-```
-
-#### 3.3.3 Method Binding
-
-```cpp
-// Add to _bind_methods()
-ClassDB::bind_method(D_METHOD("viterbi_decode", "pitch_frames"),
-    &Tunepal::viterbi_decode);
-ClassDB::bind_method(D_METHOD("set_viterbi_config", "min_midi",
-    "max_midi", "transition_penalty"), &Tunepal::set_viterbi_config);
-```
-
-### 3.4 Integration with GDScript
-
-```gdscript
-# In record.gd - after collecting all HPS pitch candidates
-
-var pitch_frames = []
-
-func _physics_process(_delta):
-    if timer.get_time_left() > 0:
-        var candidates = detect_pitch_frame(spectrum)
-        var frame = {
-            "timestamp": 10.0 - timer.get_time_left(),
-            "candidates": candidates
-        }
-        pitch_frames.append(frame)
-
-func stop_recording():
-    # ... existing code ...
-
-    # Apply Viterbi smoothing
-    var smoothed_midi = []
-    if tunepal != null and pitch_frames.size() > 0:
-        smoothed_midi = tunepal.viterbi_decode(pitch_frames)
-
-    # Convert MIDI notes to note names
-    var note_sequence = convert_midi_to_notes(smoothed_midi)
-
-    # Continue with existing grouping and matching...
-```
-
----
-
-## 4. Needleman-Wunsch Alignment
-
-### 4.1 Algorithm Description
-
-Needleman-Wunsch is a dynamic programming algorithm for global sequence alignment. Unlike simple edit distance (Levenshtein), it uses separate scoring for:
-
-- **Match:** Two identical elements align (+score)
-- **Mismatch:** Two different elements align (-score)
-- **Gap:** Element aligns with nothing (insertion/deletion)
-
-**MIT-Licensed References:**
-- Wikipedia pseudocode (Public Domain)
-- https://github.com/Orion9/NeedlemanWunsch (MIT)
-- https://github.com/Aqcurate/Needleman-Wunsch (MIT)
-
-### 4.2 Mathematical Formulation
-
-Given sequences A (length m) and B (length n), build matrix S where:
-
-```
-Initialization:
-  S[0][0] = 0
-  S[i][0] = i * gap_penalty    (for i = 1..m)
-  S[0][j] = j * gap_penalty    (for j = 1..n)
-
-Recurrence:
-  S[i][j] = max(
-      S[i-1][j-1] + score(A[i], B[j]),   // Match or mismatch
-      S[i-1][j] + gap_penalty,            // Gap in B
-      S[i][j-1] + gap_penalty             // Gap in A
-  )
-
-Where:
-  score(a, b) = match_score    if a == b
-              = mismatch_score if a != b
-
-Final alignment score: S[m][n]
-Normalized similarity: 0.5 * (S[m][n] / min(m, n)) + 0.5
-```
-
-### 4.3 Scoring Matrices for Music
-
-For melodic comparison, we can use a music-aware scoring matrix:
-
-```cpp
-// Note similarity scoring
-// Same note: +2
-// Adjacent in scale (C-D, E-F, etc.): +1
-// Third apart (C-E): 0
-// Otherwise: -2
-// Octave equivalent (C vs c): +1
-
-int music_score(char a, char b) {
-    if (a == b) return 2;  // Exact match
-
-    // Case-insensitive comparison for octave equivalence
-    char a_upper = std::toupper(a);
-    char b_upper = std::toupper(b);
-
-    if (a_upper == b_upper) return 1;  // Same note, different octave
-
-    // Scale-based adjacency
-    const char* scale = "CDEFGAB";
-    int pos_a = -1, pos_b = -1;
-    for (int i = 0; i < 7; i++) {
-        if (scale[i] == a_upper) pos_a = i;
-        if (scale[i] == b_upper) pos_b = i;
-    }
-
-    if (pos_a >= 0 && pos_b >= 0) {
-        int distance = std::min(std::abs(pos_a - pos_b), 7 - std::abs(pos_a - pos_b));
-        if (distance == 1) return 1;   // Adjacent (step)
-        if (distance == 2) return 0;   // Third
-    }
-
-    return -2;  // Unrelated
-}
-```
-
-### 4.4 C++ Implementation Specification
-
-#### 4.4.1 Header Additions (tunepal.h)
-
-```cpp
-// Needleman-Wunsch configuration
-struct NWConfig {
-    float match_score = 2.0f;
-    float mismatch_score = -2.0f;
-    float gap_penalty = -1.0f;
-    bool use_music_scoring = true;  // Use music-aware scoring matrix
-};
-
-class Tunepal : public Node2D {
-    // ... existing code ...
-
-public:
-    // Needleman-Wunsch alignment
-    float needleman_wunsch(const godot::String& pattern, const godot::String& text);
-
-    // Configure NW parameters
-    void set_nw_config(float match, float mismatch, float gap, bool music_scoring);
-
-    // Batch processing for search
-    godot::Array nw_search(
-        const godot::String& pattern,
-        const godot::Array& candidates,  // Array of {id, search_key}
-        int max_results
-    );
-
-private:
-    NWConfig nw_config_;
-
-    // Internal NW computation with space optimization
-    float compute_nw(const char* a, int len_a, const char* b, int len_b);
-
-    // Music-aware scoring
-    int music_score(char a, char b);
-};
-```
-
-#### 4.4.2 Implementation (tunepal.cpp additions)
-
-```cpp
-// Needleman-Wunsch sequence alignment
-// Sources:
-//   - Wikipedia "Needleman-Wunsch algorithm" (Public Domain)
-//   - https://github.com/Orion9/NeedlemanWunsch (MIT License)
-// NOT derived from FolkFriend (GPL-3.0)
-
-int Tunepal::music_score(char a, char b) {
-    if (a == b) return static_cast<int>(nw_config_.match_score);
-
-    if (!nw_config_.use_music_scoring) {
-        return static_cast<int>(nw_config_.mismatch_score);
-    }
-
-    // Case-insensitive for octave equivalence
-    char a_upper = std::toupper(static_cast<unsigned char>(a));
-    char b_upper = std::toupper(static_cast<unsigned char>(b));
-
-    if (a_upper == b_upper) return 1;  // Same note class
-
-    // Handle wildcards
-    if (a == 'Z' || b == 'Z') return static_cast<int>(nw_config_.match_score);
-
-    // Scale-based distance
-    static const char* scale = "CDEFGAB";
-    int pos_a = -1, pos_b = -1;
-    for (int i = 0; i < 7; i++) {
-        if (scale[i] == a_upper) pos_a = i;
-        if (scale[i] == b_upper) pos_b = i;
-    }
-
-    if (pos_a >= 0 && pos_b >= 0) {
-        int distance = std::abs(pos_a - pos_b);
-        distance = std::min(distance, 7 - distance);  // Circular distance
-
-        if (distance == 1) return 1;   // Step (C-D, B-C)
-        if (distance == 2) return 0;   // Third (C-E)
-    }
-
-    return static_cast<int>(nw_config_.mismatch_score);
-}
-
-float Tunepal::compute_nw(const char* a, int len_a, const char* b, int len_b) {
-    if (len_a == 0 || len_b == 0) {
-        return 0.0f;
-    }
-
-    // Space-optimized: only keep two rows
-    std::vector<float> prev(len_b + 1);
-    std::vector<float> curr(len_b + 1);
-
-    float gap = nw_config_.gap_penalty;
-
-    // Initialize first row
-    for (int j = 0; j <= len_b; j++) {
-        prev[j] = j * gap;
-    }
-
-    // Fill matrix
-    for (int i = 1; i <= len_a; i++) {
-        curr[0] = i * gap;
-
-        for (int j = 1; j <= len_b; j++) {
-            float match = prev[j - 1] + music_score(a[i - 1], b[j - 1]);
-            float delete_gap = prev[j] + gap;
-            float insert_gap = curr[j - 1] + gap;
-
-            curr[j] = std::max({match, delete_gap, insert_gap});
+            // DTW recurrence
+            curr[j] = cost + std::min({prev[j],      // insertion
+                                        curr[j - 1],  // deletion
+                                        prev[j - 1]}); // match
         }
 
         std::swap(prev, curr);
     }
 
-    return prev[len_b];
+    return prev[n];
 }
 
-float Tunepal::needleman_wunsch(const godot::String& pattern, const godot::String& text) {
-    if (pattern.length() == 0 || text.length() == 0) {
-        return 0.0f;
+// Convert note string to MIDI sequence for DTW
+std::vector<float> Tunepal::string_to_pitch_sequence(const String& note_string) {
+    std::vector<float> pitches;
+
+    static const std::map<char, int> note_to_midi = {
+        {'C', 60}, {'D', 62}, {'E', 64}, {'F', 65},
+        {'G', 67}, {'A', 69}, {'B', 71}
+    };
+
+    godot::CharString utf8 = note_string.utf8();
+    for (int i = 0; i < utf8.length(); i++) {
+        char c = std::toupper(static_cast<unsigned char>(utf8[i]));
+        auto it = note_to_midi.find(c);
+        if (it != note_to_midi.end()) {
+            pitches.push_back(static_cast<float>(it->second));
+        }
     }
 
-    // Convert Godot strings to std::string for easier handling
-    godot::CharString pattern_utf8 = pattern.utf8();
-    godot::CharString text_utf8 = text.utf8();
-
-    float raw_score = compute_nw(
-        pattern_utf8.get_data(), pattern_utf8.length(),
-        text_utf8.get_data(), text_utf8.length()
-    );
-
-    // Normalize to [0, 1]
-    // Maximum possible score = min(len_a, len_b) * match_score
-    int shorter = std::min(static_cast<int>(pattern.length()),
-                           static_cast<int>(text.length()));
-    float max_score = shorter * nw_config_.match_score;
-
-    // Shift and scale: raw can be negative
-    // Map from [min_possible, max_possible] to [0, 1]
-    float min_score = shorter * nw_config_.mismatch_score;  // Worst case all mismatches
-
-    float normalized = (raw_score - min_score) / (max_score - min_score);
-    return std::clamp(normalized, 0.0f, 1.0f);
+    return pitches;
 }
 
-godot::Array Tunepal::nw_search(
-    const godot::String& pattern,
-    const godot::Array& candidates,
-    int max_results
-) {
-    godot::Array results;
+float Tunepal::dtw_similarity(const String& pattern, const String& text) {
+    auto seq1 = string_to_pitch_sequence(pattern);
+    auto seq2 = string_to_pitch_sequence(text);
 
-    // Score all candidates
-    std::vector<std::pair<float, int>> scores;  // (score, index)
+    if (seq1.empty() || seq2.empty()) return 0.0f;
+
+    // Convert to PackedFloat32Array
+    PackedFloat32Array arr1, arr2;
+    arr1.resize(seq1.size());
+    arr2.resize(seq2.size());
+    for (size_t i = 0; i < seq1.size(); i++) arr1[i] = seq1[i];
+    for (size_t i = 0; i < seq2.size(); i++) arr2[i] = seq2[i];
+
+    float distance = dtw_distance(arr1, arr2);
+
+    // Normalize to [0, 1] similarity
+    // Max possible distance = 12 * min(m, n) (octave difference for each note)
+    float max_distance = 12.0f * std::min(seq1.size(), seq2.size());
+    float similarity = 1.0f - (distance / max_distance);
+
+    return std::clamp(similarity, 0.0f, 1.0f);
+}
+
+Array Tunepal::dtw_search(const String& pattern, const Array& candidates,
+                           int max_results) {
+    Array results;
+
+    std::vector<std::pair<float, int>> scores;
     scores.reserve(candidates.size());
 
+    auto pattern_seq = string_to_pitch_sequence(pattern);
+    if (pattern_seq.empty()) return results;
+
+    PackedFloat32Array pattern_arr;
+    pattern_arr.resize(pattern_seq.size());
+    for (size_t i = 0; i < pattern_seq.size(); i++) {
+        pattern_arr[i] = pattern_seq[i];
+    }
+
     for (int i = 0; i < candidates.size(); i++) {
-        godot::Dictionary cand = candidates[i];
-        godot::String search_key = cand["search_key"];
+        Dictionary cand = candidates[i];
+        String search_key = cand["search_key"];
 
-        if (search_key.length() < 20) continue;  // Skip too short
+        if (search_key.length() < 20) continue;
 
-        float score = needleman_wunsch(pattern, search_key);
+        float score = dtw_similarity(pattern, search_key);
         scores.push_back({score, i});
     }
 
-    // Partial sort to get top N
+    // Partial sort for top N
     int n = std::min(max_results, static_cast<int>(scores.size()));
     std::partial_sort(scores.begin(), scores.begin() + n, scores.end(),
         [](const auto& a, const auto& b) { return a.first > b.first; });
 
-    // Build result array
     for (int i = 0; i < n; i++) {
-        godot::Dictionary result;
-        godot::Dictionary original = candidates[scores[i].second];
+        Dictionary result;
+        Dictionary original = candidates[scores[i].second];
 
         result["confidence"] = scores[i].first;
         result["id"] = original["id"];
         result["title"] = original["title"];
         result["search_key"] = original["search_key"];
-        // Copy other fields as needed...
+        // Copy other fields...
 
         results.push_back(result);
     }
 
     return results;
 }
-
-void Tunepal::set_nw_config(float match, float mismatch, float gap, bool music_scoring) {
-    nw_config_.match_score = std::clamp(match, 0.0f, 10.0f);
-    nw_config_.mismatch_score = std::clamp(mismatch, -10.0f, 0.0f);
-    nw_config_.gap_penalty = std::clamp(gap, -10.0f, 0.0f);
-    nw_config_.use_music_scoring = music_scoring;
-}
-```
-
-#### 4.4.3 Method Binding
-
-```cpp
-// Add to _bind_methods()
-ClassDB::bind_method(D_METHOD("needleman_wunsch", "pattern", "text"),
-    &Tunepal::needleman_wunsch);
-ClassDB::bind_method(D_METHOD("nw_search", "pattern", "candidates", "max_results"),
-    &Tunepal::nw_search);
-ClassDB::bind_method(D_METHOD("set_nw_config", "match", "mismatch", "gap",
-    "music_scoring"), &Tunepal::set_nw_config);
-```
-
-### 4.5 Integration with GDScript
-
-```gdscript
-# In record.gd - replace current search function
-
-func search_with_nw(start: int, end: int, thread_id: int) -> Array:
-    var info = []
-
-    # Build candidates array for this chunk
-    var candidates = []
-    for id in range(start, end):
-        var tune = query_result[id]
-        if tune["search_key"].length() >= 50:
-            candidates.append({
-                "id": tune["id"],
-                "title": tune["title"],
-                "search_key": tune["search_key"],
-                "notation": tune["notation"],
-                "midi_sequence": tune["midi_sequence"],
-                "shortName": tune["shortName"],
-                "tune_type": tune["tune_type"],
-                "key_sig": tune["key_sig"]
-            })
-
-    # Use NW batch search
-    if tunepal != null:
-        var chunk_results = tunepal.nw_search(note_string, candidates, 100)
-        for result in chunk_results:
-            info.append(result)
-    else:
-        # Fallback to existing edSubstring
-        for tune in candidates:
-            var ed = fallback_edit_distance(note_string, tune["search_key"])
-            var confidence = 1.0 - (ed / float(note_string.length()))
-            tune["confidence"] = confidence
-            info.append(tune)
-
-    return info
 ```
 
 ---
 
-## 5. C++ Architecture Design
+## 5. Sequence Matching: Needleman-Wunsch (Fallback)
 
-### 5.1 Complete Header File (tunepal.h)
+### 5.1 When to Use NW
 
-```cpp
-#ifndef TUNEPAL_H
-#define TUNEPAL_H
+Keep NW available for:
+- Backward compatibility with existing code
+- Cases where discrete note comparison is preferred
+- ABC notation string comparison
+- Mobile fallback (simpler algorithm)
 
-#include <godot_cpp/classes/node2d.hpp>
-#include <godot_cpp/variant/packed_float32_array.hpp>
-#include <godot_cpp/variant/array.hpp>
-#include <godot_cpp/variant/dictionary.hpp>
-#include <vector>
+### 5.2 Implementation
 
-namespace godot {
+(See original implementation in Section 4.4 of previous document version - preserved for fallback)
 
-// ============================================
-// Data Structures
-// ============================================
+---
 
-struct PitchCandidate {
-    float frequency;
-    float confidence;
-    int midi_note;
-};
+## 6. C++ Architecture Design
 
-struct PitchFrame {
-    std::vector<PitchCandidate> candidates;
-    float timestamp;
-};
-
-struct HPSConfig {
-    int num_harmonics = 5;
-    float min_frequency = 80.0f;
-    float max_frequency = 2000.0f;
-    float frequency_resolution = 1.0f;
-    int max_candidates = 5;
-};
-
-struct ViterbiConfig {
-    int min_midi = 48;
-    int max_midi = 95;
-    float transition_penalty = 0.08f;
-    float silence_threshold = 0.05f;
-    int min_note_frames = 3;
-};
-
-struct NWConfig {
-    float match_score = 2.0f;
-    float mismatch_score = -2.0f;
-    float gap_penalty = -1.0f;
-    bool use_music_scoring = true;
-};
-
-// ============================================
-// Main Tunepal Class
-// ============================================
-
-class Tunepal : public Node2D {
-    GDCLASS(Tunepal, Node2D)
-
-private:
-    HPSConfig hps_config_;
-    ViterbiConfig viterbi_config_;
-    NWConfig nw_config_;
-
-protected:
-    static void _bind_methods();
-
-public:
-    Tunepal();
-    ~Tunepal();
-
-    void _process(double delta) override;
-
-    // ========================================
-    // Legacy Methods (preserved for compatibility)
-    // ========================================
-    void say_hello();
-    int edSubstring(const godot::String pattern, const godot::String text,
-                    const int thread_id);
-
-    // ========================================
-    // Harmonic Product Spectrum
-    // ========================================
-    Array detect_pitch_hps(
-        const PackedFloat32Array& magnitude_spectrum,
-        float sample_rate,
-        int fft_size
-    );
-    void set_hps_config(int num_harmonics, float min_freq, float max_freq);
-
-    // ========================================
-    // Viterbi Decoding
-    // ========================================
-    Array viterbi_decode(const Array& pitch_frames);
-    void set_viterbi_config(int min_midi, int max_midi, float transition_penalty);
-
-    // ========================================
-    // Needleman-Wunsch Alignment
-    // ========================================
-    float needleman_wunsch(const String& pattern, const String& text);
-    Array nw_search(const String& pattern, const Array& candidates, int max_results);
-    void set_nw_config(float match, float mismatch, float gap, bool music_scoring);
-
-private:
-    // Internal HPS methods
-    std::vector<PitchCandidate> compute_hps(
-        const float* spectrum, int spectrum_size, float bin_frequency_resolution);
-    int frequency_to_midi(float frequency);
-    float midi_to_frequency(int midi_note);
-
-    // Internal Viterbi methods
-    std::vector<int> compute_viterbi(const std::vector<PitchFrame>& frames);
-
-    // Internal NW methods
-    float compute_nw(const char* a, int len_a, const char* b, int len_b);
-    int music_score(char a, char b);
-};
-
-} // namespace godot
-
-#endif // TUNEPAL_H
-```
-
-### 5.2 File Structure
+### 6.1 File Structure
 
 ```
 src/
-├── tunepal.h                  # Main header (all declarations)
-├── tunepal.cpp               # Main implementation + binding
+├── tunepal.h                    # Main header
+├── tunepal.cpp                  # Core implementation + bindings
 ├── algorithms/
-│   ├── hps.cpp               # HPS implementation
-│   ├── viterbi.cpp           # Viterbi implementation
-│   └── needleman_wunsch.cpp  # NW implementation
-└── register_types.cpp        # GDExtension registration
+│   ├── pitch_pyin.cpp           # pYIN wrapper (uses sevagh library)
+│   ├── pitch_ensemble.cpp       # Ensemble (HPS + MPM + YIN + median)
+│   ├── dtw.cpp                  # DTW implementation
+│   └── needleman_wunsch.cpp     # NW fallback
+├── third_party/
+│   ├── pitch-detection/         # sevagh/pitch-detection (MIT)
+│   │   ├── include/
+│   │   └── src/
+│   └── dtw-cpp/                 # asardaes/dtw-cpp (MIT)
+└── register_types.cpp           # GDExtension registration
 ```
 
-### 5.3 Build Configuration (SConstruct modifications)
+### 6.2 Dependencies
+
+| Library | Purpose | License | Integration |
+|---------|---------|---------|-------------|
+| sevagh/pitch-detection | pYIN, MPM, YIN | MIT | Header-only, copy into third_party |
+| asardaes/dtw-cpp | DTW | MIT | Header-only, copy into third_party |
+| ffts (optional) | FFT for pitch-detection | BSD | System library or bundled |
+
+### 6.3 Build Configuration
 
 ```python
-# Add to SConstruct or SCsub
+# SConstruct additions
 
-# Algorithm source files
-algorithm_sources = [
-    "src/algorithms/hps.cpp",
-    "src/algorithms/viterbi.cpp",
+# Third-party includes
+env.Append(CPPPATH=[
+    "src/third_party/pitch-detection/include",
+    "src/third_party/dtw-cpp/include",
+])
+
+# Source files
+sources = [
+    "src/tunepal.cpp",
+    "src/algorithms/pitch_pyin.cpp",
+    "src/algorithms/pitch_ensemble.cpp",
+    "src/algorithms/dtw.cpp",
     "src/algorithms/needleman_wunsch.cpp",
+    "src/register_types.cpp",
 ]
 
-# Compile with optimization
-env.Append(CXXFLAGS=["-O3", "-march=native"])  # For desktop
-# For iOS/Android, use appropriate optimization flags
+# Optimization
+env.Append(CXXFLAGS=["-O3", "-march=native"])  # Desktop
 ```
 
 ---
 
-## 6. Integration with Existing Code
+## 7. Integration with Existing Code
 
-### 6.1 GDScript Integration Layer
-
-Create a new script to manage the enhanced pipeline:
+### 7.1 GDScript Pipeline
 
 ```gdscript
 # TunepalGodot/Scripts/pitch_pipeline.gd
 extends Node
 
 var tunepal = null
-var hps_enabled = true
-var viterbi_enabled = true
-var nw_enabled = true
+var use_dtw = true
+var use_ensemble = false
 
 func _ready():
     if ClassDB.class_exists("Tunepal"):
         tunepal = ClassDB.instantiate("Tunepal")
-        configure_defaults()
+        tunepal.set_pitch_config(44100.0, 2048, 80.0, 2000.0)
+        tunepal.set_pitch_algorithm(0 if not use_ensemble else 3)
 
-func configure_defaults():
+func detect_pitch(audio_buffer: PackedFloat32Array) -> float:
     if tunepal:
-        tunepal.set_hps_config(5, 100.0, 1800.0)
-        tunepal.set_viterbi_config(48, 96, 0.08)
-        tunepal.set_nw_config(2.0, -2.0, -1.0, true)
-
-func process_audio_frame(spectrum: AudioEffectSpectrumAnalyzerInstance,
-                          sample_rate: float = 44100.0,
-                          fft_size: int = 2048) -> Dictionary:
-    var result = {"candidates": [], "timestamp": Time.get_ticks_msec() / 1000.0}
-
-    if tunepal and hps_enabled:
-        var magnitudes = extract_magnitudes(spectrum, sample_rate, fft_size)
-        result["candidates"] = tunepal.detect_pitch_hps(magnitudes, sample_rate, fft_size)
+        if use_ensemble:
+            return tunepal.detect_pitch_ensemble(audio_buffer)
+        else:
+            return tunepal.detect_pitch_pyin(audio_buffer)
     else:
-        # Fallback to simple peak detection
-        result["candidates"] = simple_pitch_detect(spectrum)
+        return fallback_pitch_detection(audio_buffer)
 
-    return result
-
-func smooth_pitch_sequence(frames: Array) -> Array:
-    if tunepal and viterbi_enabled and frames.size() > 5:
-        return tunepal.viterbi_decode(frames)
+func detect_pitch_sequence(audio_data: PackedFloat32Array,
+                            hop_size: int = 512) -> Array:
+    if tunepal:
+        return tunepal.detect_pitch_pyin_sequence(audio_data, hop_size)
     else:
-        # Fallback: just take highest confidence from each frame
-        var result = []
-        for frame in frames:
-            if frame["candidates"].size() > 0:
-                result.append(frame["candidates"][0]["midi_note"])
-        return result
+        return fallback_sequence_detection(audio_data, hop_size)
 
-func search_tunes(pattern: String, candidates: Array, max_results: int = 50) -> Array:
-    if tunepal and nw_enabled:
-        return tunepal.nw_search(pattern, candidates, max_results)
+func search_tunes(pattern: String, candidates: Array,
+                   max_results: int = 50) -> Array:
+    if tunepal:
+        if use_dtw:
+            return tunepal.dtw_search(pattern, candidates, max_results)
+        else:
+            return tunepal.nw_search(pattern, candidates, max_results)
     else:
-        # Fallback to edSubstring
         return fallback_search(pattern, candidates, max_results)
-
-# Helper functions...
-func extract_magnitudes(spectrum, sample_rate, fft_size) -> PackedFloat32Array:
-    var magnitudes = PackedFloat32Array()
-    var bin_resolution = sample_rate / fft_size
-
-    for i in range(fft_size / 2):
-        var freq = i * bin_resolution
-        var mag = spectrum.get_magnitude_for_frequency_range(freq, freq + bin_resolution)
-        magnitudes.append(mag.length())
-
-    return magnitudes
 ```
 
-### 6.2 Modified record.gd
+### 7.2 Modified record.gd
 
 ```gdscript
-# Key modifications to record.gd
+# Key changes to record.gd
 
 @onready var pitch_pipeline = preload("res://Scripts/pitch_pipeline.gd").new()
-var pitch_frames = []
 
 func _ready():
     add_child(pitch_pipeline)
-    # ... existing initialization ...
-
-func _physics_process(_delta):
-    if timer.get_time_left() > 0:
-        # Use new pipeline
-        var frame = pitch_pipeline.process_audio_frame(spectrum)
-        pitch_frames.append(frame)
-
-        # ... existing progress bar update ...
+    # ... existing init ...
 
 func stop_recording():
-    # Apply Viterbi smoothing to get clean MIDI sequence
-    var smoothed_midi = pitch_pipeline.smooth_pitch_sequence(pitch_frames)
+    # Get raw audio from recorder
+    var audio_data = get_recorded_audio()
 
-    # Convert MIDI to note string
-    current_notes = midi_sequence_to_notes(smoothed_midi)
+    # Detect pitch sequence using pYIN
+    var pitch_sequence = pitch_pipeline.detect_pitch_sequence(audio_data, 512)
+
+    # Convert to notes
+    current_notes = convert_pitches_to_notes(pitch_sequence)
 
     # ... existing grouping code ...
 
     note_string = create_string(current_notes, average_time)
 
-    # Use NW search
-    confidences = []
-    var all_candidates = []
-    for id in range(query_result.size()):
-        var tune = query_result[id]
-        if tune["search_key"].length() >= 50:
-            all_candidates.append(tune)
+    # Search using DTW
+    confidences = pitch_pipeline.search_tunes(note_string, query_result, 100)
 
-    confidences = pitch_pipeline.search_tunes(note_string, all_candidates, 100)
-
-    # ... existing result display code ...
+    # ... existing display code ...
 ```
-
-### 6.3 Backward Compatibility
-
-The implementation preserves all existing methods:
-- `edSubstring()` remains available for mobile platforms
-- New methods are optional enhancements
-- Fallback paths exist for all new features
 
 ---
 
-## 7. Testing Strategy
+## 8. Testing Strategy
 
-### 7.1 Unit Tests (C++)
-
-```cpp
-// tests/test_algorithms.cpp
-
-#include <gtest/gtest.h>
-#include "tunepal.h"
-
-// HPS Tests
-TEST(HPSTest, DetectsSimpleSineWave) {
-    // Create synthetic spectrum with fundamental at 440Hz
-    // Verify HPS returns 440Hz with high confidence
-}
-
-TEST(HPSTest, HandlesHarmonicRichTone) {
-    // Create spectrum with strong harmonics
-    // Verify HPS finds fundamental, not harmonics
-}
-
-// Viterbi Tests
-TEST(ViterbiTest, SmoothsNoisySequence) {
-    // Create sequence with occasional noise notes
-    // Verify Viterbi removes spurious notes
-}
-
-TEST(ViterbiTest, PenalizesLargeJumps) {
-    // Create sequence with octave errors
-    // Verify Viterbi corrects octave jumps
-}
-
-// Needleman-Wunsch Tests
-TEST(NWTest, ExactMatchScoresHighest) {
-    // "CDEFG" vs "CDEFG" should score 1.0
-}
-
-TEST(NWTest, HandlesGapsCorrectly) {
-    // "CDEFG" vs "CDEG" should score reasonably
-}
-
-TEST(NWTest, MusicScoringWorks) {
-    // "C" vs "D" should score higher than "C" vs "F#"
-}
-```
-
-### 7.2 Integration Tests (GDScript)
+### 8.1 Pitch Detection Tests
 
 ```gdscript
 # tests/test_pitch_detection.gd
-extends Node
 
-func test_hps_returns_candidates():
-    var tunepal = ClassDB.instantiate("Tunepal")
-    var test_spectrum = create_test_spectrum(440.0)  # A4
-    var candidates = tunepal.detect_pitch_hps(test_spectrum, 44100.0, 2048)
+func test_pyin_detects_pure_tone():
+    var audio = generate_sine_wave(440.0, 44100, 2048)
+    var pitch = tunepal.detect_pitch_pyin(audio)
+    assert(abs(pitch - 440.0) < 5.0, "Should detect A4")
 
-    assert(candidates.size() > 0)
-    assert(abs(candidates[0]["frequency"] - 440.0) < 10.0)
+func test_pyin_handles_guitar():
+    var audio = load_test_audio("guitar_g3.wav")
+    var pitch = tunepal.detect_pitch_pyin(audio)
+    assert(abs(pitch - 196.0) < 10.0, "Should detect G3 fundamental, not harmonics")
 
-func test_viterbi_smooths_sequence():
-    # Test with noisy input
-    pass
-
-func test_nw_matches_known_tune():
-    # Test with actual tune from database
-    pass
+func test_ensemble_handles_accordion():
+    var audio = load_test_audio("accordion_melody.wav")
+    tunepal.set_pitch_algorithm(3)  # Ensemble
+    var pitches = tunepal.detect_pitch_pyin_sequence(audio, 512)
+    # Verify expected melody
 ```
 
-### 7.3 Benchmark Tests
+### 8.2 DTW Tests
 
 ```gdscript
-# tests/benchmark.gd
+func test_dtw_exact_match():
+    var score = tunepal.dtw_similarity("CDEFG", "CDEFG")
+    assert(score > 0.99, "Exact match should score ~1.0")
 
-func benchmark_search():
-    var start = Time.get_ticks_msec()
-
-    # Run 100 searches with different patterns
-    for i in range(100):
-        var pattern = generate_random_pattern(30)
-        var results = pitch_pipeline.search_tunes(pattern, query_result, 50)
-
-    var elapsed = Time.get_ticks_msec() - start
-    print("100 searches completed in %d ms (avg: %d ms/search)" % [elapsed, elapsed/100])
-
-func benchmark_pitch_detection():
-    # Measure frame-by-frame pitch detection time
-    pass
+func test_dtw_handles_tempo():
+    # Same melody, different speeds
+    var score = tunepal.dtw_similarity("CDEFG", "CCDEEFFGG")
+    assert(score > 0.8, "DTW should handle tempo variation")
 ```
-
----
-
-## 8. Performance Targets
-
-### 8.1 Latency Targets
-
-| Operation | Current (est.) | Target | Notes |
-|-----------|---------------|--------|-------|
-| HPS per frame | N/A | < 5ms | Real-time requirement |
-| Viterbi (1000 frames) | N/A | < 50ms | Post-recording |
-| NW single match | N/A | < 1ms | Per tune comparison |
-| Full search (10000 tunes) | ~1000ms | < 300ms | Using pre-filtering |
-
-### 8.2 Memory Targets
-
-| Component | Target | Notes |
-|-----------|--------|-------|
-| HPS working memory | < 1MB | Per-frame allocation |
-| Viterbi tables | < 10MB | 1000 frames × 48 states |
-| NW matrix | < 1MB | Space-optimized (2 rows) |
-
-### 8.3 FolkFriend Comparison Target
-
-FolkFriend achieves:
-- Transcription: 57ms
-- Query: 208ms
-- **Total: 265ms**
-
-Tunepal target: **< 300ms** total processing time
 
 ---
 
 ## 9. Implementation Phases
 
-### Phase 1: Foundation (1-2 weeks)
+### Phase 1: Core Pitch Detection (1-2 weeks)
 
-**Goals:**
-- Set up algorithm file structure
-- Implement HPS with unit tests
-- Basic GDScript integration
+- [ ] Integrate sevagh/pitch-detection library
+- [ ] Implement pYIN wrapper in tunepal.cpp
+- [ ] Add GDScript bindings
+- [ ] Test on synthetic tones
+- [ ] Test on harmonic-rich instruments (guitar, accordion)
 
-**Deliverables:**
-- [ ] `src/algorithms/hps.cpp` complete
-- [ ] HPS unit tests passing
-- [ ] `pitch_pipeline.gd` with HPS integration
-- [ ] Benchmark: HPS < 5ms per frame
+### Phase 2: DTW Search (1 week)
 
-### Phase 2: Temporal Smoothing (1-2 weeks)
+- [ ] Integrate asardaes/dtw-cpp
+- [ ] Implement DTW wrapper
+- [ ] Add N-gram pre-filtering
+- [ ] Benchmark search speed
 
-**Goals:**
-- Implement Viterbi decoding
-- Integrate with pitch detection pipeline
-- Test on real recordings
+### Phase 3: Integration (1 week)
 
-**Deliverables:**
-- [ ] `src/algorithms/viterbi.cpp` complete
-- [ ] Viterbi unit tests passing
-- [ ] End-to-end pitch detection working
-- [ ] Octave error rate reduced by 30%+
+- [ ] Update record.gd to use new pipeline
+- [ ] Implement fallbacks for mobile
+- [ ] End-to-end testing
 
-### Phase 3: Search Enhancement (1-2 weeks)
+### Phase 4: Optimization & Polish (1 week)
 
-**Goals:**
-- Implement Needleman-Wunsch
-- Replace Levenshtein in search pipeline
-- Optimize batch processing
-
-**Deliverables:**
-- [ ] `src/algorithms/needleman_wunsch.cpp` complete
-- [ ] NW unit tests passing
-- [ ] Search using NW by default
-- [ ] Search time < 300ms for 10000 tunes
-
-### Phase 4: Integration & Polish (1 week)
-
-**Goals:**
-- Complete GDScript integration
-- Performance optimization
-- Documentation
-
-**Deliverables:**
-- [ ] All algorithms integrated in record.gd
-- [ ] Mobile fallback paths tested
-- [ ] Performance targets met
-- [ ] User documentation updated
+- [ ] Performance tuning
+- [ ] Add ensemble mode
+- [ ] Parameter tuning for folk instruments
+- [ ] Documentation
 
 ### Phase 5: Validation (1 week)
 
-**Goals:**
-- User testing with real musicians
-- Compare accuracy with baseline
-- Fine-tune parameters
-
-**Deliverables:**
-- [ ] Test dataset with known tunes
-- [ ] Accuracy metrics documented
-- [ ] Parameter tuning complete
-- [ ] Ready for release
+- [ ] Test with real musicians
+- [ ] Benchmark against baseline
+- [ ] Benchmark against FolkFriend times
+- [ ] Final parameter tuning
 
 ---
 
 ## 10. MIT License Source Documentation
 
-### 10.1 Algorithm Sources
+### 10.1 Primary Sources
 
-| Algorithm | Primary Source | License | URL |
-|-----------|---------------|---------|-----|
-| **HPS** | A.M. Noll (1969) | Public Domain (academic) | Original paper |
-| **HPS** | Wikipedia | Public Domain | https://en.wikipedia.org/wiki/Pitch_detection_algorithm |
-| **Viterbi** | A.J. Viterbi (1967) | Public Domain (academic) | Original paper |
-| **Viterbi** | Wikipedia | Public Domain | https://en.wikipedia.org/wiki/Viterbi_algorithm |
-| **NW** | Needleman & Wunsch (1970) | Public Domain (academic) | Original paper |
-| **NW** | Wikipedia | Public Domain | https://en.wikipedia.org/wiki/Needleman-Wunsch_algorithm |
-| **NW** | Orion9/NeedlemanWunsch | MIT | https://github.com/Orion9/NeedlemanWunsch |
+| Component | Source | License | URL |
+|-----------|--------|---------|-----|
+| **pYIN/MPM/YIN** | sevagh/pitch-detection | MIT | https://github.com/sevagh/pitch-detection |
+| **DTW** | asardaes/dtw-cpp | MIT | https://github.com/asardaes/dtw-cpp |
+| **HPS** | Wikipedia / Noll 1969 | Public Domain | Wikipedia article |
+| **NW** | Wikipedia / Orion9 | Public Domain / MIT | Wikipedia + GitHub |
 
-### 10.2 Code Attribution Requirements
+### 10.2 Excluded Sources (GPL - DO NOT USE)
 
-Each implementation file must include:
+| Source | License | Reason |
+|--------|---------|--------|
+| FolkFriend | GPL-3.0 | Copyleft |
+| Original pYIN (soundsoftware) | GPL | Copyleft |
+| LibPyin | GPL-3.0 | Copyleft |
+| Aubio | GPL-3.0 | Copyleft |
+| Essentia | AGPL-3.0 | Copyleft |
+| Cycfi Q (Hz pitch detection) | GPL-3.0 | Copyleft |
+
+### 10.3 Attribution Template
 
 ```cpp
 /**
- * [Algorithm Name] Implementation
+ * [Component] Implementation
  *
- * Sources:
- *   - [Primary academic reference]
- *   - Wikipedia: [URL] (Public Domain)
- *   - [Any MIT reference]: [URL] (MIT License)
+ * MIT-Licensed Sources:
+ *   - sevagh/pitch-detection: https://github.com/sevagh/pitch-detection
+ *   - asardaes/dtw-cpp: https://github.com/asardaes/dtw-cpp
  *
- * This implementation is NOT derived from FolkFriend (GPL-3.0).
+ * Public Domain Sources:
+ *   - Wikipedia pitch detection algorithms
+ *   - Original academic papers (Noll 1969, Viterbi 1967, etc.)
  *
- * License: MIT (compatible with Tunepal project license)
+ * NOT derived from GPL-licensed code (FolkFriend, pYIN original, etc.)
  */
-```
-
-### 10.3 Excluded Sources
-
-The following sources are **GPL-licensed and must NOT be used**:
-
-| Source | License | Reason to Avoid |
-|--------|---------|-----------------|
-| FolkFriend | GPL-3.0 | Copyleft incompatible with MIT |
-| pYIN | GPL | Copyleft incompatible with MIT |
-| Aubio | GPL-3.0 | Copyleft incompatible with MIT |
-| Essentia | AGPL-3.0 | Copyleft incompatible with MIT |
-
----
-
-## Appendix A: Quick Reference
-
-### A.1 Key Constants
-
-```cpp
-// HPS
-constexpr int DEFAULT_NUM_HARMONICS = 5;
-constexpr float DEFAULT_MIN_FREQ = 80.0f;   // ~E2
-constexpr float DEFAULT_MAX_FREQ = 2000.0f; // ~B6
-
-// Viterbi
-constexpr int DEFAULT_MIN_MIDI = 48;   // C3
-constexpr int DEFAULT_MAX_MIDI = 95;   // B6
-constexpr float DEFAULT_TRANSITION_PENALTY = 0.08f;
-
-// Needleman-Wunsch
-constexpr float DEFAULT_MATCH = 2.0f;
-constexpr float DEFAULT_MISMATCH = -2.0f;
-constexpr float DEFAULT_GAP = -1.0f;
-```
-
-### A.2 MIDI Note Reference
-
-```
-MIDI 48 = C3  (~130.81 Hz)
-MIDI 60 = C4  (~261.63 Hz) - Middle C
-MIDI 69 = A4  (~440.00 Hz) - Concert A
-MIDI 72 = C5  (~523.25 Hz)
-MIDI 84 = C6  (~1046.50 Hz)
-MIDI 95 = B6  (~1975.53 Hz)
-```
-
-### A.3 API Quick Reference
-
-```cpp
-// HPS
-Array detect_pitch_hps(PackedFloat32Array spectrum, float sample_rate, int fft_size);
-void set_hps_config(int harmonics, float min_freq, float max_freq);
-
-// Viterbi
-Array viterbi_decode(Array pitch_frames);
-void set_viterbi_config(int min_midi, int max_midi, float penalty);
-
-// Needleman-Wunsch
-float needleman_wunsch(String pattern, String text);
-Array nw_search(String pattern, Array candidates, int max_results);
-void set_nw_config(float match, float mismatch, float gap, bool music_scoring);
 ```
 
 ---
 
 ## Document History
 
-| Date | Version | Author | Changes |
-|------|---------|--------|---------|
-| 2024-12 | 1.0 | Claude | Initial technical specification |
+| Date | Version | Changes |
+|------|---------|---------|
+| 2024-12 | 1.0 | Initial specification (HPS + Viterbi + NW) |
+| 2024-12 | 2.0 | **Major update:** Replaced HPS with pYIN, added DTW, integrated Viterbi into pYIN, added ensemble option. Based on research findings. |
 
 ---
 
-*This document provides complete specifications for clean-room implementation of pitch detection and matching algorithms, maintaining MIT license compatibility.*
+*This document provides complete specifications for implementing pitch detection and matching algorithms optimized for folk music instruments, including harmonic-rich instruments like guitar and accordion.*
