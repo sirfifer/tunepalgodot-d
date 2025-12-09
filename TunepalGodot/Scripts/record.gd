@@ -1,10 +1,14 @@
 extends Control
 
+# Signal emitted when database query completes
+signal database_loaded(data)
+
 #MENU STUFF
 @onready var record_bus_index
 @onready var spectrum
 @onready var timer = $Timer
 @onready var record_button = $Record
+@onready var progress_bar = $RecordingProgress
 @onready var active = false
 @onready var stop = false
 
@@ -33,7 +37,8 @@ const spellings = ["B", "C", "C", "D", "D", "E", "F", "F", "G", "G", "A", "A", "
 var current_time
 var temp_notes
 
-var tunepal = Tunepal.new()
+# Tunepal extension only available on desktop for now
+var tunepal = null
 
 func average_array(arr: Array) -> float:
 	var avg = 0.0
@@ -43,42 +48,90 @@ func average_array(arr: Array) -> float:
 	return avg
 	
 
-# From: https://github.com/2shady4u/godot-sqlite/blob/master/demo/database.gd
-func copy_data_to_user() -> void:
-	var data_path := "res://data"
-	var copy_path := "user://data"
+# Copy database from res:// to user:// for iOS/Android/Web
+# DirAccess doesn't work with packed resources, use FileAccess instead
+func copy_data_to_user() -> bool:
+	var src_path := "res://data/tunepal.db"
+	var dst_path := "user://data/tunepal.db"
 
-	DirAccess.make_dir_absolute(copy_path)
-	var dir = DirAccess.open(data_path)
-	if dir:
-		dir.list_dir_begin();
-		var file_name = dir.get_next()
-		while (file_name != ""):
-			print(file_name)
-			if dir.current_is_dir():
-				pass
-			else:
-				print("Copying " + file_name + " to /user-folder")
-				dir.copy(data_path + "/" + file_name, copy_path + "/" + file_name)
-			file_name = dir.get_next()
+	# Check if destination already exists
+	if FileAccess.file_exists(dst_path):
+		return true
+
+	# Check if source file exists in PCK
+	if not FileAccess.file_exists(src_path):
+		push_error("Source database not found in PCK: " + src_path)
+		return false
+
+	# Create the data directory using DirAccess
+	var dir = DirAccess.open("user://")
+	if dir == null:
+		push_error("Could not open user:// directory")
+		return false
+
+	if not dir.dir_exists("data"):
+		var err = dir.make_dir("data")
+		if err != OK:
+			push_error("Could not create data directory: " + str(err))
+			return false
+
+	# Read source file from PCK
+	var src_file = FileAccess.open(src_path, FileAccess.READ)
+	if src_file == null:
+		push_error("Could not open source database: " + str(FileAccess.get_open_error()))
+		return false
+
+	var file_size = src_file.get_length()
+	var data = src_file.get_buffer(file_size)
+	src_file.close()
+
+	if data.size() != file_size:
+		push_error("Failed to read complete database file")
+		return false
+
+	# Write to destination
+	var dst_file = FileAccess.open(dst_path, FileAccess.WRITE)
+	if dst_file == null:
+		push_error("Could not create destination database: " + str(FileAccess.get_open_error()))
+		return false
+
+	dst_file.store_buffer(data)
+	dst_file.close()
+
+	# Verify the copy
+	if FileAccess.file_exists(dst_path):
+		return true
 	else:
-		print("An error occurred when trying to access the path.")
+		push_error("Database copy verification failed")
+		return false
 
  
 
 func tunepal_test():
-	var pattern = "BREXDDDDD"
-	var text = "THERE IS NO BREAD"
-	tunepal.say_hello()
-	print(tunepal.edSubstring(pattern, text, 0))
-	pass
+	# Tunepal extension test - only run on desktop
+	if tunepal != null:
+		var pattern = "BREXDDDDD"
+		var text = "THERE IS NO BREAD"
+		tunepal.say_hello()
+		print(tunepal.edSubstring(pattern, text, 0))
 	
 func _ready():
+	# Platform detection
+	var platform = OS.get_name()
+
+	# Initialize Tunepal extension on desktop only (not available on iOS yet)
+	if platform not in ["Android", "iOS", "Web"]:
+		# Only try to load on desktop - iOS builds don't include the extension yet
+		if ClassDB.class_exists("Tunepal"):
+			tunepal = ClassDB.instantiate("Tunepal")
+
 	tunepal_test()
-	
-	if OS.get_name() in ["Android", "iOS", "Web"]:
-		copy_data_to_user()
-		db_name = "user://data/tunepal"
+
+	if platform in ["Android", "iOS", "Web"]:
+		if copy_data_to_user():
+			db_name = "user://data/tunepal"
+		else:
+			push_error("Failed to copy database, trying res:// fallback")
 	
 	
 	
@@ -93,14 +146,24 @@ func _ready():
 	
 	
 	#print(spellings.size(), " ", fund_frequencies.size())
+	print("Opening database at: ", db_name)
 	db.path = db_name
-	db.open_db()
+	var open_result = db.open_db()
+	print("Database open result: ", open_result)
 	db.read_only = true
 	# source = 2 norbeck
-	db.query("select tuneindex.id as id, midi_sequence, tune_type, time_sig, notation, source.id as sourceid, shortName, url, source.source as sourcename, title, alt_title, tunepalid, x, midi_file_name, key_sig, search_key from tuneindex, tunekeys, source where tunekeys.tuneid = tuneindex.id and tuneindex.source = source.id and source.id = 2;")
-	await get_tree().create_timer(.5).timeout
+	print("Running query...")
+	var query_success = db.query("select tuneindex.id as id, midi_sequence, tune_type, time_sig, notation, source.id as sourceid, shortName, url, source.source as sourcename, title, alt_title, tunepalid, x, midi_file_name, key_sig, search_key from tuneindex, tunekeys, source where tunekeys.tuneid = tuneindex.id and tuneindex.source = source.id and source.id = 2;")
+	print("Query success: ", query_success)
+	await get_tree().create_timer(1.0).timeout
 	query_result = db.query_result
+	print("Query result size: ", query_result.size() if query_result else "null")
 	db.close_db()
+	if query_result and query_result.size() > 0:
+		print("Database loaded with ", query_result.size(), " tunes")
+		database_loaded.emit(query_result)
+	else:
+		print("WARNING: Database query returned no results!")
 	
 func _process(delta):
 	#update_amplitude()
@@ -109,6 +172,10 @@ func _process(delta):
 	
 func _physics_process(_delta):
 	if timer.get_time_left() > 0:
+		# Update progress bar during recording
+		var elapsed = 10.0 - timer.get_time_left()
+		progress_bar.value = elapsed
+
 		if current_time == null:
 			current_time = timer.get_time_left()
 	  	
@@ -205,6 +272,7 @@ func _physics_process(_delta):
 	if active and stop:
 		active = false
 		timer.stop()
+		progress_bar.visible = false
 		record_button.text = "Record"
 	
 func start_recording():
@@ -229,6 +297,9 @@ func start_recording():
 	current_notes = []
 	temp_notes = []
 	record_button.text = "Recording..."
+	# Show and reset progress bar
+	progress_bar.value = 0
+	progress_bar.visible = true
 	timer.start(10)
 	note_string = ""
 	
@@ -237,6 +308,8 @@ func stop_recording():
 	active = false
 	# record_effect.set_recording_active(false)
 	$AudioStreamRecord.stop()
+	# Hide progress bar during processing
+	progress_bar.visible = false
 	confidences = []
 	var sorted_notes = []
 	for i in range(current_notes.size()):

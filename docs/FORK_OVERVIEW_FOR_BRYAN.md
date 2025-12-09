@@ -8,30 +8,28 @@
 
 ## Dear Bryan,
 
-First and foremost, I want to express my profound gratitude for the incredible gift you've given to the traditional Irish music community. Tunepal has been a companion at sessions, a teacher during practice, and a bridge connecting musicians to tunes they might never have discovered otherwise.
+First and foremost, I want to express my profound gratitude for the incredible gift you and everyone else who worked on Tunepal have given to the traditional Irish music community. Tunepal has been a companion at sessions, a teacher during practice, and a bridge connecting musicians to tunes they might never have discovered otherwise.
 
 Since 2009, your creation has served approximately 100,000 musicians and facilitated millions of tune searches. That's not just software - that's cultural preservation. That's keeping the tradition alive. As a traditional musician myself, I've experienced firsthand the magic of hearing a tune at a session, pulling out Tunepal, and having that moment of "Ah! That's what it's called!"
 
-**Go raibh mile maith agat** for all of it.
 
 ---
 
 ## Why This Fork Exists
 
-I forked your TunepalGodot repository not to compete with or replace your work, but to help. My goal is simple: **preserve your vision, respect your intent, and contribute back to what you've built**.
+I forked your TunepalGodot repository first as an experiment to explore the app, but I then realized that little to no work had been done since last year if I understand correctly. I then forked it to see if I could help out with the project. I fugured there was a very good reason why it was not being updated, but fealt your new project and your vision for it was a great new direcxtion and effort. My goal is simple: **preserve your vision, respect your intent, and contribute back to what you've built**.
 
 Everything I've done is with the following principles in mind:
 1. **This is your project** - I'm just trying to help
 2. **Open source and free** - exactly as you intended
 3. **Contribution-ready** - all work is structured to merge back upstream
 4. **Cross-platform first** - respecting your architecture decisions
-5. **Community-oriented** - serving traditional musicians, not commercial interests
+5. **Community-oriented** - serving traditional musicians
 
 **I would be honored to:**
 - Merge everything back into your upstream repository
 - Work directly out of your repo instead of this fork
 - Collaborate in whatever way works best for you
-- Simply hand over any useful work and step back
 
 Whatever serves the project and the community best - I'm completely flexible.
 
@@ -39,11 +37,12 @@ Whatever serves the project and the community best - I'm completely flexible.
 
 ## Who I Am
 
-I've been a musician my whole life, but Irish traditional music found me around 1989 and never let go. My most intense involvement was during the 1990s when I lived in Seattle, Washington - I was playing music and involved in set and step dancing pretty much six nights a week. Sessions, ceilis, festivals, the whole community. I've never quite matched that level of intensity since, but I've stayed connected to the tradition ever since, and I still aspire to do more.
+I've been a musician my whole life, but Irish traditional music found me around 1989 and never let go. My most intense involvement was during the 1990s when I lived in Seattle, Washington - I was playing music at sessions, in a few bands, and involved in set and step dancing pretty much six nights a week. Sessions, ceilis, festivals, the whole community. I've never quite matched that level of intensity since, but I've stayed connected to the tradition ever since, and I still aspire to do more.
 
 My primary instrument is the Irish flute, though I also play tin whistle (of course), bodhrán, bones, and I mess around on keyboard when no one's listening.
 
-There's an interesting wrinkle to my story right now: I'm in the process of reinventing my career. I've always been in tech, but I'm going all-in on AI. Many of the companies I'm most interested in - and the jobs I'm actively pursuing - are in Dublin. Others are elsewhere in Europe. If things go the way I hope, I'll be Ireland-adjacent within the next year.
+There's an interesting wrinkle to my story right now: I'm in the process of reinventing my career. I've always been in tech, but I'm going all-in on AI. Many of the companies I'm most interested in - and the jobs I'm actively pursuing - are in Dublin or elsewhere in Europe. If things go the way, I hope I'll be Ireland-adjacent within the next year. Time to finally make it to Willy Clancy Week!!
+I currently work at a music company, CD Baby, where I have been a platform engineer for some time. I have spent most of my over 30 years in tech though as a developer and architect.
 
 So when I say I care about this project, it's not abstract. Tunepal has been part of my musical life. Traditional Irish music is part of who I am. And if I'm lucky enough to land in Ireland, I'll be back at sessions regularly, with Tunepal on my phone (or watch, if we build that feature).
 
@@ -62,7 +61,7 @@ Since forking your repository, the majority of my contributions have been create
 
 ### Why I'm Working This Way
 
-This is part of a deliberate journey I'm on. I'm reinventing my career around AI - not just using AI tools, but developing deep expertise in *effective collaboration with AI*. The jobs I'm pursuing (many in Dublin) require demonstrating real skill in this area.
+This is part of a deliberate journey I'm on. I'm reinventing my career around AI - not just using AI tools, but developing deep expertise in *effective collaboration with AI*. I'm also doing a bit of research on the side on non-llm model development.The jobs I'm pursuing (many in Dublin) require demonstrating real skill in this area.
 
 So when I picked up this project, it was partly because:
 1. I genuinely love traditional music and want Tunepal to succeed
@@ -75,7 +74,7 @@ So when I picked up this project, it was partly because:
 
 - The exploration documents, code analysis, and documentation have significant AI involvement
 - My role has been direction, judgment, review, and iteration - not line-by-line authorship
-- The quality and depth would not have been achievable in this timeframe without AI assistance
+- The quality and depth would not have been achievable by me in this timeframe without AI assistance
 
 ### If You Have Concerns
 
@@ -86,25 +85,26 @@ So when I picked up this project, it was partly because:
 - Have other reasons I haven't considered
 
 **If any of this is a problem for you, please tell me.** I will:
-- Gladly adapt my approach to whatever you're comfortable with
-- Accept any constraints you set on how AI tools are used
+- Gladly adapt my approach to whatever you're comfortable with though if that involved no AI tools I would probably not be able to contribute much as my time is limited and part of my justification is to learn and explore
+- Accept any constraints you set on how AI tools are used and try to figure out how to work within them
 - Abandon this fork entirely if that's your preference
 
 The project is yours. The community is what matters. I have no ego invested in having my contributions accepted - I genuinely just want to help in whatever way is welcome.
 
 ### A Note on Quality
 
-Despite the AI involvement, I believe the work stands on its own merits:
+Despite the AI involvement, I believe the work is good, but I'm always working to make the results of this collaboration as good as possible:
 - Research is factual and verifiable
 - Code builds and runs
 - Analysis is thorough and considers multiple perspectives
 - Everything is documented for future maintainability
+- My preference is for solid test coverage and to develop to tests as much as possible
 
 But I wanted you to have the full picture before deciding whether this collaboration makes sense for you.
 
 ### A Thought on AI as a Feature
 
-I have no current plan to add AI as a feature within Tunepal itself - I won't force AI into the product without a compelling use case. That said, if a genuinely valuable application emerged (and I don't have one in mind today), I'd be enthusiastic about exploring it. This would align with my broader learning goals and could potentially benefit the project. Just putting it on the table as something to think about, not a proposal.
+I have no current plan or ideas on how  or if to add AI as a feature within Tunepal itself - I won't force AI into the product without a compelling use case. That said, if a genuinely valuable application emerged (and I don't have one in mind today), I'd be enthusiastic about exploring it. This would align with my broader learning goals and could potentially benefit the project. Just putting it on the table as something to think about, not a proposal.
 
 ---
 
@@ -158,7 +158,7 @@ These are research documents exploring features aligned with your stated vision.
 | **Smartwatch Integration** | `docs/exploration/EXPLORE_002_SMARTWATCH_INTEGRATION.md` | Apple Watch and Wear OS for quick tune capture at sessions |
 | **Learning & Playback** | `docs/exploration/EXPLORE_003_LEARNING_AND_PLAYBACK.md` | Tempo control, A-B loops, multi-instrument accompaniment, lilt/expression |
 | **FolkFriend Analysis** | `docs/exploration/EXPLORE_004_FOLKFRIEND_ANALYSIS.md` | Deep competitive analysis of FolkFriend tune recognition - what it does better, licensing implications (GPL vs MIT), clean-room implementation roadmap |
-| **EasyABC Analysis** | `docs/analysis/easyabc-ecosystem-analysis.md` | State of the EasyABC project and its forks |
+| **EasyABC Analysis** | `docs/analysis/easyabc-ecosystem-analysis.md` | State of the EasyABC project and its forks. This was primarily due to the interest of someone I talked to and curiosity, not anything that I think actyually effects this project. |
 
 **Why:** Your README mentions "interactive music scores with playback, repeat sections and slowdown" and "support for full range of instruments, sessions and recordings." These explorations dive deep into what that might look like. The FolkFriend analysis specifically looks at what "best in class" tune recognition looks like and how Tunepal could match or exceed it.
 

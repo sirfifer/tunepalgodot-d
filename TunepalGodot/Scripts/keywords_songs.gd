@@ -6,6 +6,7 @@ var buttons = []
 var labels = []
 var data_loaded = false
 var record_control = null
+var waiting_for_data = false
 
 func _ready():
 	buttons = get_children()
@@ -13,26 +14,39 @@ func _ready():
 	for button in buttons:
 		labels.append(button.get_children())
 		button.visible = false
-	# Defer data loading to ensure RecordMenu is ready
-	call_deferred("_load_initial_data")
+	# Start trying to load data
+	_try_load_data()
 
-func _load_initial_data():
-	# Wait a moment for the database to load
-	await get_tree().create_timer(0.6).timeout
-	_refresh_data()
-	if stuff != null and stuff.size() > 0:
-		data_loaded = true
-		_show_initial_tunes()
+func _try_load_data():
+	if waiting_for_data:
+		return
+	waiting_for_data = true
+	# Try to get the record control and its data
+	_attempt_data_fetch()
+
+func _attempt_data_fetch():
+	record_control = get_node_or_null("../../../../RecordMenu/Control")
+	if record_control:
+		var existing_data = record_control.get("query_result")
+		if existing_data != null and existing_data.size() > 0:
+			print("Keywords found database with ", existing_data.size(), " tunes")
+			stuff = existing_data
+			data_loaded = true
+			waiting_for_data = false
+			_show_initial_tunes()
+			return
+	# Data not ready yet, retry
+	await get_tree().create_timer(1.0).timeout
+	_attempt_data_fetch()
 
 func _refresh_data():
 	# Get fresh reference to the query result
-	record_control = get_node_or_null("../../../../RecordMenu/Control")
+	if record_control == null:
+		record_control = get_node_or_null("../../../../RecordMenu/Control")
 	if record_control:
 		stuff = record_control.get("query_result")
-		if stuff == null:
-			var db = record_control.get("db")
-			if db:
-				stuff = db.query_result
+		if stuff != null and stuff.size() > 0:
+			data_loaded = true
 
 func _show_initial_tunes():
 	# Show first 50 tunes alphabetically when no search is active

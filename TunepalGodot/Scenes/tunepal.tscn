@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://dexlkh1cvmqhe"]
+[gd_scene load_steps=26 format=3 uid="uid://dexlkh1cvmqhe"]
 
 [ext_resource type="Script" path="res://Scripts/menu.gd" id="1_wce83"]
 [ext_resource type="Script" path="res://Scripts/results_songs.gd" id="2_ye5fa"]
@@ -29,6 +29,20 @@ bg_color = Color(1, 1, 1, 1)
 bg_color = Color(1, 1, 1, 1)
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_qfxdp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
+bg_color = Color(0.6, 0.8, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="Tunepal" type="Node2D"]
 metadata/_edit_horizontal_guides_ = [-155.0]
@@ -90,6 +104,20 @@ bus = &"Record"
 
 [node name="Timer" type="Timer" parent="Control/Menus/RecordMenu/Control"]
 one_shot = true
+
+[node name="RecordingProgress" type="ProgressBar" parent="Control/Menus/RecordMenu/Control"]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 500.0
+offset_right = 488.0
+offset_bottom = 530.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+max_value = 10.0
+value = 0.0
+show_percentage = false
+visible = false
 
 [node name="KeywordsMenu" type="Node2D" parent="Control/Menus"]
 
@@ -3915,11 +3943,11 @@ offset_bottom = 85.0
 [node name="Record" type="Button" parent="Control/UI/MenuButtons/ColorRect/HBoxContainer"]
 custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
-theme_override_colors/font_disabled_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_focus_color = Color(0.537255, 0.537255, 0.537255, 1)
-theme_override_colors/font_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 toggle_mode = true
 button_pressed = true
 button_group = ExtResource("13_28b28")
@@ -3929,11 +3957,11 @@ flat = true
 [node name="Keywords" type="Button" parent="Control/UI/MenuButtons/ColorRect/HBoxContainer"]
 custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
-theme_override_colors/font_disabled_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_focus_color = Color(0.537255, 0.537255, 0.537255, 1)
-theme_override_colors/font_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 toggle_mode = true
 button_group = ExtResource("13_28b28")
 text = "Keywords"
@@ -3942,11 +3970,11 @@ flat = true
 [node name="MyTunes" type="Button" parent="Control/UI/MenuButtons/ColorRect/HBoxContainer"]
 custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
-theme_override_colors/font_disabled_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_focus_color = Color(0.537255, 0.537255, 0.537255, 1)
-theme_override_colors/font_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 toggle_mode = true
 button_group = ExtResource("13_28b28")
 text = "My Tunes"
@@ -3955,11 +3983,11 @@ flat = true
 [node name="Preferences" type="Button" parent="Control/UI/MenuButtons/ColorRect/HBoxContainer"]
 custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
-theme_override_colors/font_disabled_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_focus_color = Color(0.537255, 0.537255, 0.537255, 1)
-theme_override_colors/font_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 toggle_mode = true
 button_group = ExtResource("13_28b28")
 text = "Preferences"
@@ -3968,11 +3996,11 @@ flat = true
 [node name="More" type="Button" parent="Control/UI/MenuButtons/ColorRect/HBoxContainer"]
 custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
-theme_override_colors/font_disabled_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_focus_color = Color(0.537255, 0.537255, 0.537255, 1)
-theme_override_colors/font_color = Color(0.537255, 0.537255, 0.537255, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 toggle_mode = true
 button_group = ExtResource("13_28b28")
 text = "More

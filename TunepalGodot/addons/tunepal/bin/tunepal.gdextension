@@ -23,3 +23,5 @@ android.debug.arm64 = "res://addons/tunepal/bin/libtunepal.android.template_debu
 android.release.arm64 = "res://addons/tunepal/bin/libtunepal.android.template_release.arm64.so"
 ios.debug.arm64 = "res://addons/tunepal/bin/libtunepal.ios.template_debug.arm64.dylib"
 ios.release.arm64 = "res://addons/tunepal/bin/libtunepal.ios.template_release.arm64.dylib"
+ios.debug.simulator.arm64 = "res://addons/tunepal/bin/libtunepal.ios.template_debug.arm64.simulator.dylib"
+ios.release.simulator.arm64 = "res://addons/tunepal/bin/libtunepal.ios.template_release.arm64.simulator.dylib"
