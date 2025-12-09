@@ -7,15 +7,33 @@ var labels = []
 var data_loaded = false
 var record_control = null
 var waiting_for_data = false
+var button_to_tune_index = {}  # Maps button index to tune data index in 'stuff'
 
 func _ready():
 	buttons = get_children()
-	# Initialize labels array
-	for button in buttons:
+	# Initialize labels array and connect button signals
+	for i in range(buttons.size()):
+		var button = buttons[i]
 		labels.append(button.get_children())
 		button.visible = false
+		# Connect the pressed signal to handle button clicks
+		button.pressed.connect(_on_song_button_pressed.bind(i))
 	# Start trying to load data
 	_try_load_data()
+
+func _on_song_button_pressed(button_index: int):
+	# Navigate to ABCMenu when a song button is clicked
+	if button_to_tune_index.has(button_index) and stuff != null:
+		var tune_index = button_to_tune_index[button_index]
+		if tune_index < stuff.size():
+			var tune_data = stuff[tune_index]
+			# Hide Keywords menu and show ABCMenu with tune data
+			get_node("../../../../KeywordsMenu").visible = false
+			var notation = tune_data.get("notation", "")
+			var title = tune_data.get("title", "")
+			get_node("../../../../ABCMenu/Control/ColorRect/ABC").text = notation
+			get_node("../../../../ABCMenu/Control/ColorRect/Title").text = title
+			get_node("../../../../ABCMenu").visible = true
 
 func _try_load_data():
 	if waiting_for_data:
@@ -53,7 +71,8 @@ func _show_initial_tunes():
 	if stuff == null or stuff.size() == 0:
 		return
 
-	# Hide all buttons first
+	# Clear button-to-tune mapping and hide all buttons first
+	button_to_tune_index.clear()
 	for i in range(buttons.size()):
 		buttons[i].visible = false
 		if labels[i].size() > 0:
@@ -77,6 +96,7 @@ func _show_initial_tunes():
 
 		var button = buttons[count]
 		button.set_text("  " + str(stuff[i]["title"]))
+		button_to_tune_index[count] = i  # Map button index to tune data index
 
 		var info_string = ""
 		if stuff[i]["shortName"] != null:
@@ -105,7 +125,8 @@ func _on_search_bar_text_submitted(new_text):
 		if stuff == null or stuff.size() == 0:
 			return
 
-	# Hide all buttons first
+	# Clear button-to-tune mapping and hide all buttons first
+	button_to_tune_index.clear()
 	for i in range(buttons.size()):
 		buttons[i].visible = false
 		if i < labels.size() and labels[i].size() > 0:
@@ -138,6 +159,7 @@ func _on_search_bar_text_submitted(new_text):
 
 		if check:
 			button.set_text("  " + str(stuff[i]["title"]))
+			button_to_tune_index[j] = i  # Map button index to tune data index
 			var info_string = ""
 			if stuff[i]["shortName"] != null:
 				info_string = str(stuff[i]["shortName"])
