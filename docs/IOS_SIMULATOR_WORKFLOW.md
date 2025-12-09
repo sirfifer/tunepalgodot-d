@@ -58,6 +58,25 @@ open export/tunepal-ios.xcodeproj
 
 ---
 
+## Current Status
+
+### What Works
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| SQLite Database | **Working** | 24,000+ tunes load from Norbeck source |
+| Keywords View | **Working** | Displays tune list, search works |
+| Navigation | **Working** | All tab navigation functional |
+| Recording UI | **Working** | Progress bar shows during 10-sec recording |
+| Audio Recording | Partial | Simulator mic support varies |
+| Edit Distance Matching | **Not Working** | Tunepal GDExtension not built for iOS yet |
+
+### Known Limitation: Tunepal GDExtension
+
+The Tunepal C++ extension (for edit distance matching) is **not yet available on iOS**. The app loads and runs, but tune matching after recording won't work until the extension is built as an xcframework. This is tracked for future work.
+
+---
+
 ## SQLite Support
 
 ### Status: RESOLVED
@@ -67,6 +86,7 @@ SQLite now works in the iOS Simulator. The solution involved:
 1. Building custom Godot iOS templates with arm64 simulator support
 2. Building godot-sqlite with merged godot-cpp symbols as xcframeworks
 3. Using `libtool -static` to properly merge static libraries
+4. **Database copy function** in `record.gd` that copies 46MB database from PCK to `user://data/` on first launch
 
 ### Technical Details
 

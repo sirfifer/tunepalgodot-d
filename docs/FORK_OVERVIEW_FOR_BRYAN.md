@@ -129,13 +129,16 @@ Here's a concise overview of what's been added to this fork since departing from
 
 | What | Where | Description |
 |------|-------|-------------|
-| **Tunepal GDExtension** | `TunepalGodot/addons/tunepal/bin/tunepal.gdextension:24-25` | Added iOS arm64 entries |
+| **Tunepal GDExtension** | `TunepalGodot/addons/tunepal/bin/tunepal.gdextension:24-27` | Added iOS arm64 + simulator entries |
 | **SQLite xcframework** | `TunepalGodot/addons/godot-sqlite/gdsqlite.gdextension:18-19` | Updated to use xcframework for iOS |
-| **Export Presets** | `TunepalGodot/export_presets.cfg` | iOS export template with microphone permissions |
+| **Export Presets** | `TunepalGodot/export_presets.cfg` | iOS export template with microphone permissions, database include |
 | **Simulator Workflow** | `docs/IOS_SIMULATOR_WORKFLOW.md` | Documentation for iOS simulator development |
 | **Simulator Build Plan** | `docs/plans/PLAN_001_SQLITE_IOS_SIMULATOR.md` | Step-by-step plan to build godot-sqlite for simulator |
+| **Simulator Test Script** | `scripts/test-ios-simulator.sh` | One-command build/test workflow for iOS simulator |
+| **Database Copy** | `TunepalGodot/Scripts/record.gd:47-102` | Copies 46MB database from PCK to user:// on mobile |
+| **Progress Bar** | `TunepalGodot/Scenes/tunepal.tscn` | Visual feedback during 10-second recording |
 
-**Why:** Your blog post mentions wanting iOS support and a launch at Willie Clancy 2025. This lays the foundation for iOS deployment.
+**Why:** Your blog post mentions wanting iOS support and a launch at Willie Clancy 2025. **The iOS Simulator is now fully working** - database loads, Keywords view shows all 24,000+ tunes, navigation works. This is a major milestone toward iOS deployment.
 
 ### 3. Documentation
 
@@ -181,7 +184,11 @@ Here's every file added or significantly modified, so you can review at your lei
 
 .claude/
   settings.json              # Claude Code settings with GitHub whitelist
+  settings.local.json        # Local permissions for autonomous iOS development
   install-godot.sh           # SessionStart hook for Godot installation
+
+scripts/
+  test-ios-simulator.sh      # One-command iOS simulator testing
 
 docs/
   FORK_OVERVIEW_FOR_BRYAN.md # This document - overview for the original author
@@ -209,8 +216,12 @@ ROADMAP.md                   # Development roadmap
 ```
 README.md                    # Expanded with attribution, status tables
 .gitignore                   # Added built extension binaries
-TunepalGodot/addons/tunepal/bin/tunepal.gdextension  # Added iOS entries
+TunepalGodot/addons/tunepal/bin/tunepal.gdextension  # Added iOS + simulator entries
 TunepalGodot/addons/godot-sqlite/gdsqlite.gdextension # Updated to xcframework
+TunepalGodot/Scripts/record.gd       # Database copy for mobile, optional Tunepal extension, progress bar
+TunepalGodot/Scripts/keywords_songs.gd # Improved async data loading with retry
+TunepalGodot/Scenes/tunepal.tscn     # Added RecordingProgress bar, font contrast fixes
+TunepalGodot/export_presets.cfg      # Added include_filter for .db files
 ```
 
 ---
@@ -221,15 +232,17 @@ Building on your foundation, here's the current state:
 
 | Feature | Status | Your Implementation | This Fork's Additions |
 |---------|--------|---------------------|----------------------|
-| Audio Recording | Working | Your code | - |
+| Audio Recording | Working | Your code | Progress bar during recording |
 | Frequency Analysis | Working | Your code | - |
 | Note Recognition | Working | Your code | - |
 | ABC String Generation | Working | Your code | - |
-| Edit Distance Search | Working | Your C++ GDExtension | Added test suite |
+| Edit Distance Search | Working (desktop) | Your C++ GDExtension | Added test suite; disabled on iOS (extension not yet built) |
 | Multi-threaded Search | Working | Your code | - |
-| Keyword Search | Working | Your code | Fixed font rendering |
+| Keyword Search | Working | Your code | Fixed font contrast, improved data loading |
 | SQLite Database | Working | Your integration | iOS xcframework support |
-| iOS Build | Ready | Configured | Added to CI, export presets |
+| iOS Simulator | **Working** | - | Full database loads, all 24,000+ tunes display |
+| Database (mobile) | **Working** | - | 46MB database copies from PCK to user:// |
+| Recording Progress | **Working** | - | Visual progress bar during 10-sec recording |
 | CI/CD | New | - | Full pipeline for all platforms |
 
 ---
@@ -393,4 +406,4 @@ A Fellow Traditional Musician
 
 *This document: `docs/FORK_OVERVIEW_FOR_BRYAN.md`*
 *Last updated: December 8, 2025*
-*Updated to include: AI workflow transparency section, FolkFriend competitive analysis*
+*Updated to include: iOS Simulator working (major milestone!), database copy for mobile, recording progress bar, font contrast fixes*
