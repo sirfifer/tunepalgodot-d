@@ -15,6 +15,7 @@ var preferencesTimeSignaturesMenu
 var preferencesCountdownMenu
 var preferencesLanguageMenu
 var resultMenu
+var debugOverlay
 
 func _ready():
 	menus = $Menus.get_children()
@@ -32,6 +33,7 @@ func _ready():
 	moreMenu = $Menus/MoreMenu
 	preferencesCurrentMenu = preferencesMainMenu
 	resultMenu = $Menus/ResultMenu
+	debugOverlay = $DebugOverlay
 	for i in menus:
 		i.visible = false
 	recordMenu.visible = true
@@ -123,4 +125,8 @@ func _on_back_to_record_pressed():
 	for i in menus:
 		i.visible = false
 	recordMenu.visible = true
-	
+
+func _on_debug_mode_toggled(button_pressed: bool):
+	if debugOverlay:
+		debugOverlay.visible = button_pressed
+

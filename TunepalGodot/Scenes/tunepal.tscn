@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://dexlkh1cvmqhe"]
+[gd_scene load_steps=27 format=3 uid="uid://dexlkh1cvmqhe"]
 
 [ext_resource type="Script" path="res://Scripts/menu.gd" id="1_wce83"]
 [ext_resource type="Script" path="res://Scripts/results_songs.gd" id="2_ye5fa"]
@@ -19,6 +19,7 @@
 [ext_resource type="Texture2D" uid="uid://bwhoarolysagy" path="res://Icon Pictures/Facebook symbol.png" id="12_hsncw"]
 [ext_resource type="ButtonGroup" uid="uid://b6m85x57xm6cw" path="res://Scenes/button_group.tres" id="13_28b28"]
 [ext_resource type="Theme" uid="uid://b1kmk3bditaib" path="res://bryans_theme.tres" id="18_nq3ph"]
+[ext_resource type="Script" path="res://Scripts/debug_overlay.gd" id="19_dbgov"]
 
 [sub_resource type="AudioStreamMicrophone" id="AudioStreamMicrophone_e84lj"]
 
@@ -2115,6 +2116,11 @@ theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_e21rs")
 text = "  Server"
 alignment = 0
+
+[node name="Debug Mode" type="CheckButton" parent="Control/Menus/PreferencesMenu/MainMenu/Control/ScrollContainer/Songs"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Debug Mode"
 
 [node name="ColorRect" type="ColorRect" parent="Control/Menus/PreferencesMenu/MainMenu/Control"]
 layout_mode = 0
@@ -4226,6 +4232,194 @@ text = "More
 "
 flat = true
 
+[node name="DebugOverlay" type="Control" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("19_dbgov")
+
+[node name="Panel" type="PanelContainer" parent="Control/DebugOverlay"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -350.0
+offset_right = 320.0
+offset_bottom = -60.0
+grow_vertical = 0
+
+[node name="VBox" type="VBoxContainer" parent="Control/DebugOverlay/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Control/DebugOverlay/Panel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "Detection Debug"
+
+[node name="CloseButton" type="Button" parent="Control/DebugOverlay/Panel/VBox/Header"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+text = "X"
+
+[node name="Sep1" type="HSeparator" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="StatusRow" type="HBoxContainer" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="Control/DebugOverlay/Panel/VBox/StatusRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Status:"
+
+[node name="StatusValue" type="Label" parent="Control/DebugOverlay/Panel/VBox/StatusRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Idle"
+
+[node name="PitchRow" type="HBoxContainer" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="PitchLabel" type="Label" parent="Control/DebugOverlay/Panel/VBox/PitchRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Pitch:"
+
+[node name="PitchValue" type="Label" parent="Control/DebugOverlay/Panel/VBox/PitchRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "-- Hz"
+
+[node name="ConfidenceRow" type="HBoxContainer" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="ConfidenceLabel" type="Label" parent="Control/DebugOverlay/Panel/VBox/ConfidenceRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Confidence:"
+
+[node name="ConfidenceBar" type="ProgressBar" parent="Control/DebugOverlay/Panel/VBox/ConfidenceRow"]
+custom_minimum_size = Vector2(120, 20)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+max_value = 1.0
+step = 0.01
+show_percentage = false
+
+[node name="ConfidenceValue" type="Label" parent="Control/DebugOverlay/Panel/VBox/ConfidenceRow"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+text = "0.00"
+
+[node name="MidiRow" type="HBoxContainer" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="MidiLabel" type="Label" parent="Control/DebugOverlay/Panel/VBox/MidiRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "MIDI:"
+
+[node name="MidiValue" type="Label" parent="Control/DebugOverlay/Panel/VBox/MidiRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "--"
+
+[node name="Sep2" type="HSeparator" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="YinRow" type="HBoxContainer" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="YinLabel" type="Label" parent="Control/DebugOverlay/Panel/VBox/YinRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "YIN Thresh:"
+
+[node name="YinSlider" type="HSlider" parent="Control/DebugOverlay/Panel/VBox/YinRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.05
+max_value = 0.3
+step = 0.01
+value = 0.15
+
+[node name="YinValue" type="Label" parent="Control/DebugOverlay/Panel/VBox/YinRow"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+text = "0.15"
+
+[node name="MinFreqRow" type="HBoxContainer" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="MinFreqLabel" type="Label" parent="Control/DebugOverlay/Panel/VBox/MinFreqRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Min Freq:"
+
+[node name="MinFreqSlider" type="HSlider" parent="Control/DebugOverlay/Panel/VBox/MinFreqRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 50.0
+max_value = 200.0
+step = 10.0
+value = 80.0
+
+[node name="MinFreqValue" type="Label" parent="Control/DebugOverlay/Panel/VBox/MinFreqRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "80 Hz"
+
+[node name="MaxFreqRow" type="HBoxContainer" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="MaxFreqLabel" type="Label" parent="Control/DebugOverlay/Panel/VBox/MaxFreqRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Max Freq:"
+
+[node name="MaxFreqSlider" type="HSlider" parent="Control/DebugOverlay/Panel/VBox/MaxFreqRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 500.0
+max_value = 4000.0
+step = 100.0
+value = 2000.0
+
+[node name="MaxFreqValue" type="Label" parent="Control/DebugOverlay/Panel/VBox/MaxFreqRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "2000 Hz"
+
+[node name="Sep3" type="HSeparator" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="NotesRow" type="HBoxContainer" parent="Control/DebugOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="NotesLabel" type="Label" parent="Control/DebugOverlay/Panel/VBox/NotesRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Notes:"
+
+[node name="NotesValue" type="Label" parent="Control/DebugOverlay/Panel/VBox/NotesRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "--"
+
 [connection signal="pressed" from="Control/Menus/RecordMenu/Control/Record" to="Control/Menus/RecordMenu/Control" method="_on_record_pressed"]
 [connection signal="timeout" from="Control/Menus/RecordMenu/Control/Timer" to="Control/Menus/RecordMenu/Control" method="_on_timer_timeout"]
 [connection signal="text_submitted" from="Control/Menus/KeywordsMenu/Control/ColorRect/SearchBar" to="Control/Menus/KeywordsMenu/Control/ScrollContainer/Songs" method="_on_search_bar_text_submitted"]
@@ -4253,3 +4447,4 @@ flat = true
 [connection signal="pressed" from="Control/UI/MenuButtons/ColorRect/HBoxContainer/MyTunes" to="Control" method="_on_my_tunes_pressed"]
 [connection signal="pressed" from="Control/UI/MenuButtons/ColorRect/HBoxContainer/Preferences" to="Control" method="_on_preferences_pressed"]
 [connection signal="pressed" from="Control/UI/MenuButtons/ColorRect/HBoxContainer/More" to="Control" method="_on_more_pressed"]
+[connection signal="toggled" from="Control/Menus/PreferencesMenu/MainMenu/Control/ScrollContainer/Songs/Debug Mode" to="Control" method="_on_debug_mode_toggled"]

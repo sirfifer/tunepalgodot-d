@@ -12,7 +12,9 @@ env = SConscript("godot-cpp/SConstruct")
 # - CPPDEFINES are for pre-processor defines
 # - LINKFLAGS are for linking flags
 
-# tweak this if you want to use different folders, or more folders, to store your source code in.
+# ========================================
+# Original Tunepal Library (Bryan's code)
+# ========================================
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
 
@@ -30,3 +32,40 @@ else:
     )
 
 Default(library)
+
+# ========================================
+# Experimental Library (pYIN + DTW)
+# ========================================
+# Build with: scons experimental
+# This creates a SEPARATE library that can be loaded alongside the original
+
+# Check if 'experimental' target is specified
+build_experimental = 'experimental' in COMMAND_LINE_TARGETS or os.environ.get('BUILD_EXPERIMENTAL', '0') == '1'
+
+if build_experimental:
+    # Clone environment for experimental library
+    env_exp = env.Clone()
+
+    # Add experimental source paths
+    env_exp.Append(CPPPATH=["src_experimental/", "src_experimental/algorithms/"])
+
+    # Collect experimental sources
+    exp_sources = Glob("src_experimental/*.cpp")
+
+    if env_exp["platform"] == "macos":
+        exp_library = env_exp.SharedLibrary(
+            "TunepalGodot/addons/tunepal_experimental/bin/libtunepal_experimental.{}.{}.framework/libtunepal_experimental.{}.{}".format(
+                env_exp["platform"], env_exp["target"], env_exp["platform"], env_exp["target"]
+            ),
+            source=exp_sources,
+        )
+    else:
+        exp_library = env_exp.SharedLibrary(
+            "TunepalGodot/addons/tunepal_experimental/bin/libtunepal_experimental{}{}".format(
+                env_exp["suffix"], env_exp["SHLIBSUFFIX"]
+            ),
+            source=exp_sources,
+        )
+
+    # Create an alias for easy building
+    Alias('experimental', exp_library)

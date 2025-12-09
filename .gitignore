@@ -23,6 +23,20 @@ TunepalGodot/addons/tunepal/bin/*.dylib
 TunepalGodot/addons/tunepal/bin/*.a
 TunepalGodot/addons/tunepal/bin/*.framework/
 
+# Experimental library built binaries
+TunepalGodot/addons/tunepal_experimental/bin/*.so
+TunepalGodot/addons/tunepal_experimental/bin/*.dll
+TunepalGodot/addons/tunepal_experimental/bin/*.dylib
+TunepalGodot/addons/tunepal_experimental/bin/*.a
+TunepalGodot/addons/tunepal_experimental/bin/*.framework/
+
+# Experimental library object files
+src_experimental/*.os
+src_experimental/*.o
+
+# Third-party reference code (not used in build, kept locally for reference)
+src_experimental/third_party/
+
 # IDE
 .vscode/
 *.code-workspace
