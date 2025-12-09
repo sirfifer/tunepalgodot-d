@@ -161,6 +161,7 @@ These are research documents exploring features aligned with your stated vision.
 | **Smartwatch Integration** | `docs/exploration/EXPLORE_002_SMARTWATCH_INTEGRATION.md` | Apple Watch and Wear OS for quick tune capture at sessions |
 | **Learning & Playback** | `docs/exploration/EXPLORE_003_LEARNING_AND_PLAYBACK.md` | Tempo control, A-B loops, multi-instrument accompaniment, lilt/expression |
 | **FolkFriend Analysis** | `docs/exploration/EXPLORE_004_FOLKFRIEND_ANALYSIS.md` | Deep competitive analysis of FolkFriend tune recognition - what it does better, licensing implications (GPL vs MIT), clean-room implementation roadmap |
+| **Session Tracker** | `docs/exploration/EXPLORE_005_SESSION_TRACKER.md` | Automated session tracking - continuous tune recognition during sessions, set detection, personal tune logging. Uses Bryan Duggan's MATS/TANSEY research on set annotation. |
 | **EasyABC Analysis** | `docs/analysis/easyabc-ecosystem-analysis.md` | State of the EasyABC project and its forks. This was primarily due to the interest of someone I talked to and curiosity, not anything that I think actyually effects this project. |
 
 **Why:** Your README mentions "interactive music scores with playback, repeat sections and slowdown" and "support for full range of instruments, sessions and recordings." These explorations dive deep into what that might look like. The FolkFriend analysis specifically looks at what "best in class" tune recognition looks like and how Tunepal could match or exceed it.
@@ -200,6 +201,7 @@ docs/
     EXPLORE_002_SMARTWATCH_INTEGRATION.md    # Smartwatch research
     EXPLORE_003_LEARNING_AND_PLAYBACK.md     # Learning features research
     EXPLORE_004_FOLKFRIEND_ANALYSIS.md       # FolkFriend competitive analysis & implementation roadmap
+    EXPLORE_005_SESSION_TRACKER.md           # Automated session tracking & set detection
   analysis/
     easyabc-ecosystem-analysis.md            # EasyABC ecosystem state
 
@@ -306,6 +308,20 @@ This is the most extensive exploration, covering:
 ### EasyABC Analysis (`easyabc-ecosystem-analysis.md`)
 Analysis of whether to fork EasyABC for ABC editing capabilities. **Conclusion:** Don't fork - contribute upstream instead. Main repo is actively maintained.
 
+### Session Tracker (`EXPLORE_005_SESSION_TRACKER.md`)
+This explores an exciting new capability: **automated session tracking**. Instead of manually identifying tunes one at a time, a "Session Mode" would:
+
+1. **Continuous Recognition** - Phone listens periodically (every 20-30 seconds) during a session
+2. **Set Detection** - Automatically groups tunes played back-to-back without pause
+3. **Personal Tracking** - User marks which tunes they played vs. just heard
+4. **Session History** - Build a personal log of sessions attended and tunes encountered
+
+**Key Finding:** Bryan Duggan's own research (MATS/TANSEY algorithms from 2008) achieved **96% accuracy** in identifying tunes within sets - proving this is technically feasible.
+
+**Market Gap:** No existing app (TunePal, FolkFriend, Ceol.io) offers automated session tracking. This would be a unique differentiator.
+
+**MVP Approach:** Foreground-only operation initially (phone on table with app open), with periodic sampling and simple silence-based set boundary detection. More sophisticated background execution and MATS-style segmentation could follow.
+
 ---
 
 ## What I'm NOT Doing
@@ -405,5 +421,5 @@ A Fellow Traditional Musician
 ---
 
 *This document: `docs/FORK_OVERVIEW_FOR_BRYAN.md`*
-*Last updated: December 8, 2025*
-*Updated to include: iOS Simulator working (major milestone!), database copy for mobile, recording progress bar, font contrast fixes*
+*Last updated: December 9, 2025*
+*Updated to include: iOS Simulator working (major milestone!), database copy for mobile, recording progress bar, font contrast fixes, Session Tracker exploration (EXPLORE_005)*
